@@ -15,15 +15,17 @@ public class SimpleFK : MonoBehaviour
     public TrajectoryPlanner planner;
     public List<float[]> spherecolors;
     public List<PoseMsg> poses_to_sent;
+    public List<Vector3> lineposes;
+    public LineRenderer Line;
     void Start()
     {
-
+        Line = GetComponent<LineRenderer>();
         spherecolors = new List<float[]>();
         for (int i = 0; i < 4; i++)
             spherecolors.Add(new float[] {UnityEngine.Random.Range(0.0f, 1f), UnityEngine.Random.Range(0.0f, 1f),
                                                                                     UnityEngine.Random.Range(0.0f, 1f)});
         jointChain = new List<Transform>();
-
+        lineposes = new List<Vector3>();
         robot = FindRobotObject();
         
         if (!robot)
@@ -49,17 +51,19 @@ public class SimpleFK : MonoBehaviour
                                 (planner.colorindex != 1 & planner.colorindex != 2)) {
             {
                 Debug.Log(planner.colorindex);
-                planner.robot_poses.Add(ForwardKinematics());
+                ForwardKinematics();
+                // DrawLine();
                 framecount = 0; 
             }
         // if (planner.colorindex == 0 & poses_to_sent.Count > 10) {
         //     planner.Publish_many(poses_to_sent);
         // }
-                    
         }
         // Debug.Log(planner.responseforLine.trajectories.Length);
         // if (planner.responseforLine.trajectories.Length > 0) {
         //     DrawLine();
+        // }
+        // if (planner.colorindex == 0 & lineposes.Count > 10) {
         // }
     }
 
@@ -82,7 +86,7 @@ public class SimpleFK : MonoBehaviour
         return null;
     }
 
-    public PoseMsg ForwardKinematics () {
+    public void ForwardKinematics () {
         Vector3 prevPoint = jointChain[0].transform.position;
         Vector3 axis = new Vector3(0, 1, 0); // rotation around y axis 
         Quaternion rotation = Quaternion.identity;
@@ -99,55 +103,33 @@ public class SimpleFK : MonoBehaviour
         sphere.GetComponent<SphereCollider>().enabled = false; 
         Color newColor = new Color(spherecolors[planner.colorindex][0], spherecolors[planner.colorindex][1],
                                                                                  spherecolors[planner.colorindex][2]);
+        // adding the line 
+        // if (lineposes.Count % 5 == 0) {
+        // every 5th pose add waypoint to modify
         sphere.GetComponent<Renderer>().material.color = newColor;
         sphere.transform.position = prevPoint;
         sphere.transform.rotation = rotation;
         sphere.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
-        return new PoseMsg
+        planner.robot_poses.Add(new PoseMsg
         {
             position = prevPoint.To<FLU>(), // SPHERE position 
             orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
             // orientation = rotation.To<FLU>() // SPHERE rotation
-        };
+        });
+        Line.positionCount++;
+        Line.SetPosition(Line.positionCount-1,sphere.transform.position);
+        // lineposes.Add(sphere.transform.position);
+
+        // }
     }
 
     // void DrawLine() {
     //     // linepoints = new List<Vector3>();
-    //     // LineRenderer Line = GetComponent<LineRenderer>();
-    //     int j = 0;
-    //     int color = 0;
-    //     for (var poseIndex = 0; poseIndex < planner.responseforLine.trajectories.Length; poseIndex++)
-    //     {
-    //         // For every robot pose in trajectory plan
-    //         foreach (var angs in  planner.responseforLine.trajectories[poseIndex].joint_trajectory.points) {
-                
-    //             var jointPositions = angs.positions;
-                    
-    //             var result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-    //             // one point is a 6 angles of the joints in this particular positon 
-    //             string printing = "";
-    //             for (int i = 1; i < jointChain.Count; i++) {
-    //                 printing += result[i-1].ToString() + " next ";
-
-    //                 Vector3 anglesEuler = jointChain[i].transform.rotation.eulerAngles;
-    //                 anglesEuler.y = result[i-1];// * (180/(float) Math.PI); // in rad so we have to translate it to deg
-    //                 jointChain[i].transform.rotation = Quaternion.Euler(anglesEuler);
-    //                 // Debug.Log(anglesEuler);
-    //             }
-    //             j++;
-    //             Debug.Log($" {j} Fk: {printing}");
-
-    //             // get the position of the end effector and add it to the line
-    //             // add a point to the line 
-    //             // Line.positionCount = j;
-    //             ForwardKinematics();
-    //             // Line.SetPosition(j-1,ForwardKinematics());
-    //         }
-    //         color++;
+        
+    //     for (int i = Line.positionCount; i < lineposes.Count; i++)
+    //     {      
+               
     //     }
-
-        // reset the line to prevet creating inf numbers of lines
-    //     planner.responseforLine = new MoverServiceResponse();
     // }
         
 
