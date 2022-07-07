@@ -91,7 +91,7 @@ public class sceneController : MonoBehaviour
                 newZ = Random.Range(minZ, maxZ);                
                 // result = random.Next(minN, maxN + 1);
             }              
-            Vector3 newPos = new Vector3(newX, 0.63f, newZ);
+            Vector3 newPos = new Vector3(newX, 0.6f, newZ);
             Quaternion newRot = Random.rotation;
             // newRot.x = 0;
             // newRot.z = 0;

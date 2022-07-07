@@ -40,10 +40,10 @@ public class BoundingBoxer : MonoBehaviour
             Vector3 min_pt = bds.min;
             Vector3 max_pt = bds.max;
             // Debug.Log($"in world {min_pt} {max_pt}");
-
             // transfering them to the camera coordinates 
             max_pt = cam.WorldToScreenPoint(max_pt);
             min_pt = cam.WorldToScreenPoint(min_pt);
+            Debug.Log($"original {bds.min}, on the screen {max_pt}, backtoorgin {cam.ScreenToWorldPoint(max_pt)}");
             // bb coordinates for the coco annot 
             Dictionary<string,float> newannot = new Dictionary<string,float>();
             
