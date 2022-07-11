@@ -17,6 +17,7 @@ public class SimpleFK : MonoBehaviour
     public List<PoseMsg> poses_to_sent;
     public List<Vector3> lineposes;
     public LineRenderer Line;
+    public GameObject waypointObject;
     void Start()
     {
         Line = GetComponent<LineRenderer>();
@@ -98,18 +99,27 @@ public class SimpleFK : MonoBehaviour
             Vector3 nextPoint = prevPoint + rotation * jointChain[i].transform.localPosition;
             prevPoint = nextPoint;
         }
+        // add way point of the movement 
+        Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0));
+
         // generate sphere with the point
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.GetComponent<SphereCollider>().enabled = false; 
-        Color newColor = new Color(spherecolors[planner.colorindex][0], spherecolors[planner.colorindex][1],
-                                                                                 spherecolors[planner.colorindex][2]);
+        
+        // try {
+        //     waypoint.GetComponent<SphereCollider>().enabled = false; 
+        //     Color newColor = new Color(spherecolors[planner.colorindex][0], spherecolors[planner.colorindex][1],
+        //                                                                          spherecolors[planner.colorindex][2]);
+        //     waypoint.GetComponent<Renderer>().material.color = newColor;
+
+        // } catch {
+        //     Debug.Log("it is not a sphere");
+        // }
+        
         // adding the line 
         // if (lineposes.Count % 5 == 0) {
         // every 5th pose add waypoint to modify
-        sphere.GetComponent<Renderer>().material.color = newColor;
-        sphere.transform.position = prevPoint;
-        sphere.transform.rotation = rotation;
-        sphere.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
+        // waypoint.transform.position = prevPoint;
+        // waypoint.transform.rotation = rotation;
+        // waypoint.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
         planner.robot_poses.Add(new PoseMsg
         {
             position = prevPoint.To<FLU>(), // SPHERE position 
@@ -117,7 +127,7 @@ public class SimpleFK : MonoBehaviour
             // orientation = rotation.To<FLU>() // SPHERE rotation
         });
         Line.positionCount++;
-        Line.SetPosition(Line.positionCount-1,sphere.transform.position);
+        Line.SetPosition(Line.positionCount-1,prevPoint);
         // lineposes.Add(sphere.transform.position);
 
         // }

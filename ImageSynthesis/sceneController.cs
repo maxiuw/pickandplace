@@ -77,7 +77,7 @@ public class sceneController : MonoBehaviour
             // Debug.Log(objnumber);
 
             int prefabIdx = Random.Range(0, prefabs.Length); //);
-            GameObject prefab = prefabs[prefabIdx]; 
+            // GameObject prefab = prefabs[prefabIdx]; 
             // random position, rotation and scale 
             float newX = 0;
             float newZ = 0;

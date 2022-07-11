@@ -46,6 +46,7 @@ public class ObjectRecieverRos : MonoBehaviour {
 	void DoStuff(StringMsg msg) {
         JObject json = JObject.Parse(msg.data);
         int[] classes = json["classes"].ToObject<int[]>();
+        Debug.Log(msg.data);
         // double[] bb = json["bb"].ToObject<double[]>();
         for (int i = 0; i < classes.Length; i++) {
             if (classes[i] != 3) {
