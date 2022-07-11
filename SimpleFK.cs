@@ -12,12 +12,12 @@ public class SimpleFK : MonoBehaviour
     public const string k_TagName = "robot";
     public const string joint_name = "link";
     private int framecount = 0;
+    private int framecount_lineupdate = 0;
     public TrajectoryPlanner planner;
     public List<float[]> spherecolors;
-    public List<PoseMsg> poses_to_sent;
-    public List<Vector3> lineposes;
     public LineRenderer Line;
     public GameObject waypointObject;
+    private List<GameObject> waypoints;
     void Start()
     {
         Line = GetComponent<LineRenderer>();
@@ -26,9 +26,8 @@ public class SimpleFK : MonoBehaviour
             spherecolors.Add(new float[] {UnityEngine.Random.Range(0.0f, 1f), UnityEngine.Random.Range(0.0f, 1f),
                                                                                     UnityEngine.Random.Range(0.0f, 1f)});
         jointChain = new List<Transform>();
-        lineposes = new List<Vector3>();
         robot = FindRobotObject();
-        
+        waypoints = new List<GameObject>();
         if (!robot)
         {
             Debug.Log("i didn't find robot");
@@ -47,6 +46,7 @@ public class SimpleFK : MonoBehaviour
         }        
     }
     private void Update() {
+        framecount_lineupdate++;
         framecount++;
         if (planner.responseforLine.trajectories.Length > 0 & framecount > 10 & 
                                 (planner.colorindex != 1 & planner.colorindex != 2)) {
@@ -56,16 +56,11 @@ public class SimpleFK : MonoBehaviour
                 // DrawLine();
                 framecount = 0; 
             }
-        // if (planner.colorindex == 0 & poses_to_sent.Count > 10) {
-        //     planner.Publish_many(poses_to_sent);
-        // }
         }
-        // Debug.Log(planner.responseforLine.trajectories.Length);
-        // if (planner.responseforLine.trajectories.Length > 0) {
-        //     DrawLine();
-        // }
-        // if (planner.colorindex == 0 & lineposes.Count > 10) {
-        // }
+        if (framecount_lineupdate > 30 & waypoints.Count > 10) {
+            framecount_lineupdate = 0;
+            updateLine();
+        }
     }
 
     public static GameObject FindRobotObject()
@@ -100,32 +95,8 @@ public class SimpleFK : MonoBehaviour
             prevPoint = nextPoint;
         }
         // add way point of the movement 
-        Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0));
-
-        // generate sphere with the point
-        
-        // try {
-        //     waypoint.GetComponent<SphereCollider>().enabled = false; 
-        //     Color newColor = new Color(spherecolors[planner.colorindex][0], spherecolors[planner.colorindex][1],
-        //                                                                          spherecolors[planner.colorindex][2]);
-        //     waypoint.GetComponent<Renderer>().material.color = newColor;
-
-        // } catch {
-        //     Debug.Log("it is not a sphere");
-        // }
-        
-        // adding the line 
-        // if (lineposes.Count % 5 == 0) {
-        // every 5th pose add waypoint to modify
-        // waypoint.transform.position = prevPoint;
-        // waypoint.transform.rotation = rotation;
-        // waypoint.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
-        planner.robot_poses.Add(new PoseMsg
-        {
-            position = prevPoint.To<FLU>(), // SPHERE position 
-            orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
-            // orientation = rotation.To<FLU>() // SPHERE rotation
-        });
+        waypoints.Add(Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0)));
+        // here we add the poses of the waypoints to the planner 
         Line.positionCount++;
         Line.SetPosition(Line.positionCount-1,prevPoint);
         // lineposes.Add(sphere.transform.position);
@@ -133,15 +104,19 @@ public class SimpleFK : MonoBehaviour
         // }
     }
 
-    // void DrawLine() {
-    //     // linepoints = new List<Vector3>();
-        
-    //     for (int i = Line.positionCount; i < lineposes.Count; i++)
-    //     {      
-               
-    //     }
-    // }
-        
-
+    public void sendWaypoints() {
+        foreach (var wpnt in waypoints) {
+            planner.robot_poses.Add(new PoseMsg
+            {
+                position = wpnt.transform.position.To<FLU>(), // SPHERE position 
+                orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
+                // orientation = rotation.To<FLU>() // SPHERE rotation
+            });
+        }
+    }
+    public void updateLine() {
+        for (int i = 0; i < waypoints.Count; i ++)
+            Line.SetPosition(i,waypoints[i].transform.position);
+    }  
 }
 
