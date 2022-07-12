@@ -166,6 +166,7 @@ public class TrajectoryPlanner : MonoBehaviour
     }
     public void Publish_many()
     {
+        colorindex = 10;
         if (robot_poses.Count > 0) {
             var request = new MoverManyPosesRequest(); // this is where you edited a lot of shit
             request.joints_input = CurrentJointConfig();
@@ -269,7 +270,7 @@ public class TrajectoryPlanner : MonoBehaviour
             // For every trajectory plan returned
             for (var poseIndex = 0; poseIndex < response.trajectories.Length; poseIndex++)
             {
-                colorindex = poseIndex;
+                // colorindex = 0;
                 // For every robot pose in trajectory plan
                 foreach (var t in response.trajectories[poseIndex].joint_trajectory.points)
                 {
@@ -299,11 +300,14 @@ public class TrajectoryPlanner : MonoBehaviour
 
                 // Wait for the robot to achieve the final pose from joint assignment
                 yield return new WaitForSeconds(k_PoseAssignmentWait);
+                colorindex++;
+                if (colorindex == 11) 
+                    colorindex = 0;
             }
             // All trajectories have been executed, open the gripper to place the target cube
             OpenGripper();
         }
-        colorindex = 1;
+        colorindex = 1; // added to stop generating waypoints 
     }
 
     enum Poses

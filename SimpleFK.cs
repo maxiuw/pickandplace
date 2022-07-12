@@ -18,6 +18,7 @@ public class SimpleFK : MonoBehaviour
     public LineRenderer Line;
     public GameObject waypointObject;
     private List<GameObject> waypoints;
+    private Dictionary<int,List<Vector3>> posedict;
     void Start()
     {
         Line = GetComponent<LineRenderer>();
@@ -28,6 +29,7 @@ public class SimpleFK : MonoBehaviour
         jointChain = new List<Transform>();
         robot = FindRobotObject();
         waypoints = new List<GameObject>();
+        posedict = new Dictionary<int, List<Vector3>>(); 
         if (!robot)
         {
             Debug.Log("i didn't find robot");
@@ -35,10 +37,8 @@ public class SimpleFK : MonoBehaviour
         }
 
         foreach (Transform transformation in robot.GetComponentsInChildren<Transform>())
-        {
-            
-            if (transformation.tag == joint_name) {
-                
+        {   
+            if (transformation.tag == joint_name) {              
                 jointChain.Add(transformation);
                 // angles.Add(transformation.rotation.eulerAngles.y); // adding rotation above y axis 
                 // Debug.Log(transformation);
@@ -48,8 +48,10 @@ public class SimpleFK : MonoBehaviour
     private void Update() {
         framecount_lineupdate++;
         framecount++;
+        // dont create a waypoints when picking up the obj or 
+        // when going back to the starting point when redoing the trajectory after waypoints were moves 
         if (planner.responseforLine.trajectories.Length > 0 & framecount > 10 & 
-                                (planner.colorindex != 1 & planner.colorindex != 2)) {
+                                (planner.colorindex != 1 & planner.colorindex != 2 & planner.colorindex != 10)) {
             {
                 Debug.Log(planner.colorindex);
                 ForwardKinematics();
@@ -94,27 +96,60 @@ public class SimpleFK : MonoBehaviour
             Vector3 nextPoint = prevPoint + rotation * jointChain[i].transform.localPosition;
             prevPoint = nextPoint;
         }
-        // add way point of the movement 
+        // add way point of the movement dict 
+        try {
+            posedict[planner.colorindex].Add(prevPoint);
+        } 
+        catch {
+            posedict[planner.colorindex] = new List<Vector3>();
+            posedict[planner.colorindex].Add(prevPoint);
+        }
+        
         waypoints.Add(Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0)));
         // here we add the poses of the waypoints to the planner 
         Line.positionCount++;
         Line.SetPosition(Line.positionCount-1,prevPoint);
-        // lineposes.Add(sphere.transform.position);
-
-        // }
     }
-
     public void sendWaypoints() {
-        foreach (var wpnt in waypoints) {
-            planner.robot_poses.Add(new PoseMsg
-            {
-                position = wpnt.transform.position.To<FLU>(), // SPHERE position 
-                orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
-                // orientation = rotation.To<FLU>() // SPHERE rotation
-            });
+         // send waypoints to the puhlisher 
+        int k = 0;
+        foreach (int key in posedict.Keys) {
+            foreach (Vector3 vect in posedict[key]) { 
+                if (k == 0 | k == waypoints.Count-1 | waypoints[k].transform.position != vect) {
+                     planner.robot_poses.Add(new PoseMsg
+                    {
+                    position = waypoints[k].transform.position.To<FLU>(), // SPHERE position 
+                    orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
+                    // orientation = rotation.To<FLU>() // SPHERE rotation
+                    });
+                }
+                Destroy(waypoints[k]);
+                k++;
+            }
         }
+        waypoints = new List<GameObject>();
+        Line.positionCount = 0; // remove all the line verices 
     }
+        // // send waypoints to the puhlisher 
+        // for (int wpnt = 0; wpnt < waypoints.Count; wpnt++) {
+        //     // to ensure smoothness of the traj (too many points, too laggy) only include points that changed the position
+        //     if (wpnt == 0 | wpnt == waypoints.Count-1 | waypoints[wpnt].transform.position != GetNext(wpnt)) {
+        //         planner.robot_poses.Add(new PoseMsg
+        //         {
+        //             position = waypoints[wpnt].transform.position.To<FLU>(), // SPHERE position 
+        //             orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
+        //             // orientation = rotation.To<FLU>() // SPHERE rotation
+        //         });
+        //     }
+           
+        //     // destroy old waypoits
+        //     Destroy(waypoints[wpnt]);
+        // }
+        // waypoints = new List<GameObject>();
+        // Line.positionCount = 0; // remove all the line verices 
+  
     public void updateLine() {
+        // update the lines (since we are moving the waypoints aroind)
         for (int i = 0; i < waypoints.Count; i ++)
             Line.SetPosition(i,waypoints[i].transform.position);
     }  
