@@ -17,8 +17,9 @@ public class SimpleFK : MonoBehaviour
     public List<float[]> spherecolors;
     public LineRenderer Line;
     public GameObject waypointObject;
-    private List<GameObject> waypoints;
-    private Dictionary<int,List<Vector3>> posedict;
+    private List<GameObject> waypoints; // where the waypoints are saved and the position is updated (if they are moved)
+    private Dictionary<int,List<Vector3>> posedict; // where initial position of the waypoints is saved
+    public Shader shade; 
     void Start()
     {
         Line = GetComponent<LineRenderer>();
@@ -50,8 +51,8 @@ public class SimpleFK : MonoBehaviour
         framecount++;
         // dont create a waypoints when picking up the obj or 
         // when going back to the starting point when redoing the trajectory after waypoints were moves 
-        if (planner.responseforLine.trajectories.Length > 0 & framecount > 10 & 
-                                (planner.colorindex != 1 & planner.colorindex != 2 & planner.colorindex != 10)) {
+        if (planner.responseforLine.trajectories.Length > 0 & framecount > 30 & 
+                                (planner.colorindex != 10)) { //planner.colorindex != 1 & planner.colorindex != 2
             {
                 Debug.Log(planner.colorindex);
                 ForwardKinematics();
@@ -59,7 +60,7 @@ public class SimpleFK : MonoBehaviour
                 framecount = 0; 
             }
         }
-        if (framecount_lineupdate > 30 & waypoints.Count > 10) {
+        if (framecount_lineupdate > 30 & waypoints.Count > 5) {
             framecount_lineupdate = 0;
             updateLine();
         }
@@ -104,31 +105,40 @@ public class SimpleFK : MonoBehaviour
             posedict[planner.colorindex] = new List<Vector3>();
             posedict[planner.colorindex].Add(prevPoint);
         }
-        
-        waypoints.Add(Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0)));
+        // create a waypoint and disable collider 
+        GameObject pt = Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0));
+        pt.GetComponent<SphereCollider>().enabled = false;
+        waypoints.Add(pt);
         // here we add the poses of the waypoints to the planner 
         Line.positionCount++;
         Line.SetPosition(Line.positionCount-1,prevPoint);
     }
+
     public void sendWaypoints() {
+        // TODO MAKE IT WORK WELL :)
          // send waypoints to the puhlisher 
         int k = 0;
+        int numofpt = 0;
         foreach (int key in posedict.Keys) {
             foreach (Vector3 vect in posedict[key]) { 
-                if (k == 0 | k == waypoints.Count-1 | waypoints[k].transform.position != vect) {
+                if (k == 0 | k == waypoints.Count-1 | waypoints[k].transform.position != vect | key == 1 | key == 2) {
                      planner.robot_poses.Add(new PoseMsg
                     {
                     position = waypoints[k].transform.position.To<FLU>(), // SPHERE position 
                     orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
                     // orientation = rotation.To<FLU>() // SPHERE rotation
                     });
+                    numofpt++;
                 }
                 Destroy(waypoints[k]);
                 k++;
             }
         }
+        Debug.Log($"i sent {numofpt} waypoints");
         waypoints = new List<GameObject>();
+        leave_old_line(); // create a copy of a line so that we can see how the trajectory chagned 
         Line.positionCount = 0; // remove all the line verices 
+        
     }
         // // send waypoints to the puhlisher 
         // for (int wpnt = 0; wpnt < waypoints.Count; wpnt++) {
@@ -153,5 +163,33 @@ public class SimpleFK : MonoBehaviour
         for (int i = 0; i < waypoints.Count; i ++)
             Line.SetPosition(i,waypoints[i].transform.position);
     }  
+    public void enable_waypoints() {
+        foreach (GameObject waypt in waypoints) {
+            // for spehere 
+            // TODO for the endeff
+            try {
+                waypt.GetComponent<SphereCollider>().enabled = true;
+            } catch {
+                Debug.Log("Does not have a collider, wont be able to grab it ");
+            }
+        }
+    }
+    public void leave_old_line() { 
+        GameObject gObject = new GameObject("OldTrajectory");
+        LineRenderer lRend = gObject.AddComponent<LineRenderer>();
+        lRend.positionCount = 0;
+        for (int i = 0; i < Line.positionCount; i++) {
+            lRend.positionCount++;
+            lRend.SetPosition(i,Line.GetPosition(i));
+        }
+        // lRend.SetPosition(Line.Posit());
+        
+        // lRend.startColor = Color.green;
+        // lRend.endColor = Color.green;
+        lRend.material = new Material(shade);
+        lRend.material.color = Color.green;
+        lRend.SetWidth(Line.startWidth, Line.endWidth);
+    }
 }
+    // <!-- <limit effort="1" lower="-3.05433" upper="3.05433" velocity="1.0"/> -->
 

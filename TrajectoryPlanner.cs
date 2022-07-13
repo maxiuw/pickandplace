@@ -28,7 +28,7 @@ public class TrajectoryPlanner : MonoBehaviour
     GameObject m_NiryoOne;
     public GameObject NiryoOne { get => m_NiryoOne; set => m_NiryoOne = value; }
     [HideInInspector]
-    GameObject m_Target;
+    public GameObject m_Target;
     public GameObject Target { get => m_Target; set => m_Target = value; }
     [SerializeField]
     GameObject m_TargetPlacement;
@@ -181,6 +181,7 @@ public class TrajectoryPlanner : MonoBehaviour
             request.poses = robot_poses.ToArray();
             Debug.Log("I send the service msg");
             m_Ros.SendServiceMessage<MoverServiceResponse>(simplemoves, request, TrajectoryResponse);
+            robot_poses = new List<PoseMsg>(); // remove all the poses after request was sent 
         } else {
             Debug.Log("Dont have any poses to publish");
         }
@@ -197,6 +198,8 @@ public class TrajectoryPlanner : MonoBehaviour
         };
         Vector3 newObjTransformation = Reciever.positions.Pop();
         Quaternion newObjRotation = Reciever.rotations.Pop();
+        // Vector3 newObjTransformation = m_Target.transform.position;
+        // Quaternion newObjRotation = m_Target.transform.rotation;
         // Pick Pose
         newObjTransformation.y = 0.64f;
         request.pick_pose = new PoseMsg
@@ -307,7 +310,7 @@ public class TrajectoryPlanner : MonoBehaviour
             // All trajectories have been executed, open the gripper to place the target cube
             OpenGripper();
         }
-        colorindex = 1; // added to stop generating waypoints 
+        colorindex = 10; // added to stop generating waypoints 
     }
 
     enum Poses
