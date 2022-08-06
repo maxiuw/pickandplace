@@ -59,7 +59,7 @@ public class PandaPlanner : MonoBehaviour
     [HideInInspector] 
     public int colorindex = 0;
     public List<PoseMsg> robot_poses;
-
+    public string subscriber_topicname = "/joint_state_unity";
 
     /// <summary>
     ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
@@ -73,11 +73,12 @@ public class PandaPlanner : MonoBehaviour
         // Get ROS connection static instance
         m_Ros = ROSConnection.GetOrCreateInstance();
         // with and without picking responses 
-
+        // initiate services
         m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
         m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
-
-
+        // initiate subscriber 
+        m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
+        // get robot's joints 
         m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
 
         var linkName = string.Empty;
@@ -95,7 +96,9 @@ public class PandaPlanner : MonoBehaviour
         m_RightGripper = Panda.transform.Find(rightGripper).GetComponent<ArticulationBody>();
         m_LeftGripper = Panda.transform.Find(leftGripper).GetComponent<ArticulationBody>();
     }
-
+    void Update() {
+         
+    }
     //     }
     /// <summary>
     ///     Close the gripper
@@ -340,6 +343,36 @@ public class PandaPlanner : MonoBehaviour
         }
         colorindex = 10; // added to stop generating waypoints 
     }
+
+    void ExecuteTrajectoriesJointState(FloatListMsg response) {
+        // For every trajectory plan returned
+        Debug.Log("I got joint states");
+        Debug.Log(response.joints.ToArray());
+        // Debug.Log(response.ToString);
+        Debug.Log("end of message");
+        // RunTrajectories(FloatListMsg response)
+        StartCoroutine(RunTrajectories(response));
+
+    }
+    IEnumerator RunTrajectories(FloatListMsg response) {
+        Debug.Log("I executed runtraj");
+        Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
+        float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+        // double[] response_array = response.joints.ToArray();
+        string printing = "";
+        // response.data[1]
+        for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++) {
+            Debug.Log($"joint {joint} position {response_array[joint]}");
+            printing += response_array[joint].ToString() + " next ";
+            // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+            var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+            joint1XDrive.target = response_array[joint];
+            m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+        }
+        yield return new WaitForSeconds(k_JointAssignmentWait);
+    }
+    
+
 
     enum Poses
     {
