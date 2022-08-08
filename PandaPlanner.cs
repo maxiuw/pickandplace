@@ -9,7 +9,8 @@ using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using UnityEngine;
 using System.Collections.Generic;
-
+using RosMessageTypes.Moveit;
+using RosMessageTypes.Sensor;
 public class PandaPlanner : MonoBehaviour
 {
     
@@ -60,6 +61,7 @@ public class PandaPlanner : MonoBehaviour
     public int colorindex = 0;
     public List<PoseMsg> robot_poses;
     public string subscriber_topicname = "/joint_state_unity";
+    string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
 
     /// <summary>
     ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
@@ -74,10 +76,12 @@ public class PandaPlanner : MonoBehaviour
         m_Ros = ROSConnection.GetOrCreateInstance();
         // with and without picking responses 
         // initiate services
-        m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
-        m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
+        // m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
+        // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
         // initiate subscriber 
         m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
+        // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
+        m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
         // get robot's joints 
         m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
 
@@ -272,7 +276,7 @@ public class PandaPlanner : MonoBehaviour
             Debug.Log("Trajectory returned.");
             messagestoshow.Push("Trajectory returned.");
             responseforLine = response;
-            StartCoroutine(ExecuteTrajectories(response));
+            StartCoroutine(ExecuteTrajectories(response.trajectories));
         }
         else
         {
@@ -297,16 +301,16 @@ public class PandaPlanner : MonoBehaviour
     /// </summary>
     /// <param name="response"> MoverServiceResponse received from niryo_moveit mover service running in ROS</param>
     /// <returns></returns>
-    IEnumerator ExecuteTrajectories(PandaMoverServiceResponse response)
-    {
-        if (response.trajectories != null)
+    IEnumerator ExecuteTrajectories(RobotTrajectoryMsg[] response) {
+        Debug.Log("YO EXECUTIN MANY TRAJECTORIES");
+        if (response != null)
         {                
             // For every trajectory plan returned
-            for (var poseIndex = 0; poseIndex < response.trajectories.Length; poseIndex++)
+            for (var poseIndex = 0; poseIndex < response.Length; poseIndex++)
             {
                 // colorindex = 0;
                 // For every robot pose in trajectory plan
-                foreach (var t in response.trajectories[poseIndex].joint_trajectory.points)
+                foreach (var t in response[poseIndex].joint_trajectory.points)
                 {
                     var jointPositions = t.positions;
                     
@@ -371,8 +375,61 @@ public class PandaPlanner : MonoBehaviour
         }
         yield return new WaitForSeconds(k_JointAssignmentWait);
     }
-    
+    /// <summary>
+    /// executing the trajectory given by the controller  /move_group/fake_controller_joint_states 
+    /// </summary>
+    /// <param name="response"> MoverServiceResponse received from niryo_moveit mover service running in ROS</param>
+    /// <returns></returns>
+    void ExectuteMoverResults(JointStateMsg result) {
+        // more details and message structure in the message file
+        // getting initial joints state (start) and the joint_trajectory points
+        // float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+        // RobotTrajectoryMsg[] joint_states = new RobotTrajectoryMsg[1];
+        // joint_states[0] = result.result.planned_trajectory;
+        StartCoroutine(RunTrajectories(result.position));
 
+
+    IEnumerator RunTrajectories(double[] response) {
+        Debug.Log("I executed runtraj");
+        Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
+        float[] response_array = response.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+        // double[] response_array = response.joints.ToArray();
+        string printing = "";
+        // response.data[1]
+        for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++) {
+            Debug.Log($"joint {joint} position {response_array[joint]}");
+            printing += response_array[joint].ToString() + " next ";
+            // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+            var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+            joint1XDrive.target = response_array[joint];
+            m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+        }
+        yield return new WaitForSeconds(k_JointAssignmentWait);
+    }
+    
+        // if (result.result.Length > 0)
+        // {
+        //     Debug.Log("Trajectory returned.");
+        //     messagestoshow.Push("Trajectory returned.");
+        //     // responseforLine = result;
+        //     StartCoroutine(ExecuteTrajectories(result));
+        // }
+    }
+    // void ExectuteMoverResults(MoveGroupActionResult result) {
+    //     // more details and message structure in the message file
+    //     // getting initial joints state (start) and the joint_trajectory points
+    //     float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+    //     RobotTrajectoryMsg[] joint_states = new RobotTrajectoryMsg[1];
+    //     joint_states[0] = result.result.planned_trajectory;
+    //     StartCoroutine(ExecuteTrajectories(joint_states));
+    //     // if (result.result.Length > 0)
+    //     // {
+    //     //     Debug.Log("Trajectory returned.");
+    //     //     messagestoshow.Push("Trajectory returned.");
+    //     //     // responseforLine = result;
+    //     //     StartCoroutine(ExecuteTrajectories(result));
+    //     // }
+    // }
 
     enum Poses
     {
