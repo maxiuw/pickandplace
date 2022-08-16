@@ -10,12 +10,12 @@ public class SourceDestinationPublisher : MonoBehaviour
 {
     
     // for niryo
-    public static readonly string[] LinkNames =
-        { "world/base_link/shoulder_link", "/arm_link", "/elbow_link", "/forearm_link", "/wrist_link", "/hand_link" };
+    // public static readonly string[] LinkNames =
+    //     { "world/base_link/shoulder_link", "/arm_link", "/elbow_link", "/forearm_link", "/wrist_link", "/hand_link" };
     // for panda
-    // public static readonly string[] LinkNames = 
-    //         { "world/panda_link0/panda_link1", "/panda_link2", "/panda_link3", 
-    //                 "/panda_link4", "/panda_link5", "/panda_link6", "/panda_link7"}; //"panda_hand"
+    public static readonly string[] LinkNames = 
+            { "world/panda_link0/panda_link1", "/panda_link2", "/panda_link3", 
+                    "/panda_link4", "/panda_link5", "/panda_link6", "/panda_link7"}; //"panda_hand"
     int k_NumRobotJoints = LinkNames.Length;
     // Variables required for ROS communication
     [SerializeField]
