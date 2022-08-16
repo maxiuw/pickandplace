@@ -76,12 +76,13 @@ public class PandaPlanner : MonoBehaviour
         m_Ros = ROSConnection.GetOrCreateInstance();
         // with and without picking responses 
         // initiate services
-        // m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
+        m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
         // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
+        m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
         // initiate subscriber 
         m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
         // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
-        m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
+        // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
         // get robot's joints 
         m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
 
@@ -146,6 +147,7 @@ public class PandaPlanner : MonoBehaviour
         {
             // Debug.Log(i);
             joints.joints[i] = m_JointArticulationBodies[i].jointPosition[0];
+            Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
         }
 
         return joints;
@@ -159,39 +161,53 @@ public class PandaPlanner : MonoBehaviour
     /// </summary>
     public void SendMeHome()
     {   
-        var request = new PandaMoverServiceRequest(); 
-        request.joints_input = CurrentJointConfig();
+        PandaSimpleServiceRequest request = new PandaSimpleServiceRequest(); 
+        double[] joints = new double[k_NumRobotJoints];
+         for (var i = 0; i < k_NumRobotJoints; i++)
+        {
+            // Debug.Log(i);
+            joints[i] = m_JointArticulationBodies[i].jointPosition[0];
+            Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
+        }
+        request.current_joints = joints;
         // request.messagename = new RosMessageTypes.Diagnostic.SelfTestResponse {
         //     id = "home"
         // };
-        Vector3 newObjTransformation = homePose;
+        // Vector3 homePosenewObjTransformation = homePose;
         // Quaternion newObjRotation = Reciever.rotations.Pop();
         // Vector3 newObjTransformation = m_Target.transform.position;
         // Quaternion newObjRotation = m_Target.transform.rotation;
         // Pick Pose
-        newObjTransformation.y = 0.64f;
-        request.pick_pose = new PoseMsg
+        // homePose.y = 0.64f;
+        Quaternion orientation = Quaternion.Euler(90, 0, 0);
+        // orientation.w = 1.0f;
+        request.targetpose = new PoseMsg
         {
            
-            position = (newObjTransformation + m_PickPoseOffset).To<FLU>(), // m_Target.transform.position
+            position = (homePose + m_PickPoseOffset).To<FLU>(), // m_Target.transform.position
 
             // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
-            orientation = Quaternion.Euler(90, 0, 0).To<FLU>() //m_Target.transform
+            orientation = orientation.To<FLU>() //m_Target.transform
         };
         // for console canvas 
-        messagestoshow.Push($"position {newObjTransformation} ort {0}");
-        Debug.Log($"position {newObjTransformation} ort {0}");
-        // Place Pose
-        Vector3 placepose = m_TargetPlacement.transform.position;
-        placepose.y = 0.64f;
-        request.place_pose = new PoseMsg
-        {
-            position = (placepose + m_PickPoseOffset).To<FLU>(),
-            orientation = m_PickOrientation.To<FLU>()
-        };
+        messagestoshow.Push($"position {homePose} ort {0}");
+        Debug.Log($"position {homePose} ort {0}");
+        // // Place Pose
+        // Vector3 placepose = m_TargetPlacement.transform.position;
+        // placepose.y = 0.64f;
+        // request.place_pose = new PoseMsg
+        // {
+        //     position = (placepose + m_PickPoseOffset).To<FLU>(),
+        //     orientation = m_PickOrientation.To<FLU>()
+        // };
 
-        m_Ros.SendServiceMessage<PandaMoverServiceResponse>(m_RosServiceName, request, PandaTrajectoryResponse);
+        m_Ros.SendServiceMessage<PandaSimpleServiceResponse>(m_simplemoves, request, SimpleResponse);
     }
+    void SimpleResponse(PandaSimpleServiceResponse traj) {
+        Debug.Log(traj.trajectories);
+        StartCoroutine(ExecuteTrajectories(traj.trajectories));
+    }
+
     public void Publish_many()
     {
         colorindex = 10;
