@@ -35,7 +35,7 @@ public class ObjReciever : MonoBehaviour {
 	}
     public void CreateObject() { 
         foreach (OscMessage m in osc.messagesReceived) {
-            Debug.Log($"I recieveed {m}");
+            // Debug.Log($"I recieveed {m}");
             if (m.address == "/objReciever") {
                 OnObjectRecieved(m);
             }

@@ -16,7 +16,7 @@ public class TargetReciever : MonoBehaviour
     void Update()
     {
         foreach (OscMessage m in osc.messagesReceived) {
-            Debug.Log($"I recieveed {m}");
+            // Debug.Log($"I recieveed {m}");
             if (m.address == "/TargetReciever") {
                 ChangeTarget(m);
             }

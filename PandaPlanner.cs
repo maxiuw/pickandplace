@@ -11,6 +11,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using RosMessageTypes.Moveit;
 using RosMessageTypes.Sensor;
+
+namespace PandaRobot {
+
 public class PandaPlanner : MonoBehaviour
 {
     
@@ -21,7 +24,7 @@ public class PandaPlanner : MonoBehaviour
 
     // Variables required for ROS communication
     [SerializeField]
-    string m_RosServiceName = "panda_msgs";
+    string m_RosServiceName = "panda_move";
     public string RosServiceName { get => m_RosServiceName; set => m_RosServiceName = value; }
     string m_simplemoves = "moveit_many";
     public string simplemoves { get => m_simplemoves; set => m_simplemoves = value; }
@@ -38,7 +41,7 @@ public class PandaPlanner : MonoBehaviour
 
     // Assures that the gripper is always positioned above the m_Target cube before grasping.
     readonly Quaternion m_PickOrientation = Quaternion.Euler(90, 90, 0);
-    readonly Vector3 m_PickPoseOffset = Vector3.up * 0.125f;
+    readonly Vector3 m_PickPoseOffset = Vector3.up * 0.05f;
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
     ArticulationBody m_LeftGripper;
@@ -76,7 +79,7 @@ public class PandaPlanner : MonoBehaviour
         m_Ros = ROSConnection.GetOrCreateInstance();
         // with and without picking responses 
         // initiate services
-        m_Ros.RegisterRosService<PandaMoverServiceRequest, PandaMoverServiceResponse>(m_RosServiceName);
+        m_Ros.RegisterRosService<PandaPickUpRequest, PandaPickUpRequest>(m_RosServiceName);
         // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
         m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
         // initiate subscriber 
@@ -114,8 +117,8 @@ public class PandaPlanner : MonoBehaviour
         var leftDrive = m_LeftGripper.xDrive;
         var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = -0.1f;
-        rightDrive.target = 0.1f;
+        leftDrive.target = -0.02f;
+        rightDrive.target = 0.021f;
 
         m_LeftGripper.xDrive = leftDrive;
         m_RightGripper.xDrive = rightDrive;
@@ -130,8 +133,8 @@ public class PandaPlanner : MonoBehaviour
         var leftDrive = m_LeftGripper.xDrive;
         var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = 0.1f;
-        rightDrive.target = -0.1f;
+        leftDrive.target = 0.02f;
+        rightDrive.target = -0.02f;
 
         m_LeftGripper.xDrive = leftDrive;
         m_RightGripper.xDrive = rightDrive;
@@ -149,7 +152,7 @@ public class PandaPlanner : MonoBehaviour
         {
             // Debug.Log(i);
             joints.joints[i] = m_JointArticulationBodies[i].jointPosition[0];
-            Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
+            // Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
         }
 
         return joints;
@@ -165,7 +168,7 @@ public class PandaPlanner : MonoBehaviour
     {   
         PandaSimpleServiceRequest request = new PandaSimpleServiceRequest(); 
         double[] joints = new double[k_NumRobotJoints];
-         for (var i = 0; i < k_NumRobotJoints; i++)
+        for (var i = 0; i < k_NumRobotJoints; i++)
         {
             // Debug.Log(i);
             joints[i] = m_JointArticulationBodies[i].jointPosition[0];
@@ -184,15 +187,6 @@ public class PandaPlanner : MonoBehaviour
         // for console canvas 
         messagestoshow.Push($"position {homePose} ort {0}");
         Debug.Log($"position {homePose} ort {0}");
-        // // Place Pose
-        // Vector3 placepose = m_TargetPlacement.transform.position;
-        // placepose.y = 0.64f;
-        // request.place_pose = new PoseMsg
-        // {
-        //     position = (placepose + m_PickPoseOffset).To<FLU>(),
-        //     orientation = m_PickOrientation.To<FLU>()
-        // };
-
         m_Ros.SendServiceMessage<PandaSimpleServiceResponse>(m_simplemoves, request, SimpleResponse);
     }
     void SimpleResponse(PandaSimpleServiceResponse traj) {
@@ -200,79 +194,62 @@ public class PandaPlanner : MonoBehaviour
         StartCoroutine(ExecuteTrajectories(traj.trajectories));
     }
 
-    public void Publish_many()
-    {
-        colorindex = 10;
-        if (robot_poses.Count > 0) {
-            var request = new PandaMoverManyPosesRequest(); // this is where you edited a lot of shit
-            request.joints_input = CurrentJointConfig();
-
-            // Vector3 newObjTransformation = homePose;
-            // PoseMsg[] poses_to_sent = new PoseMsg[robot_poses.Count];
-            // Quaternion newObjRotation = Quaternion.Euler(0, 0, 0).To<FLU>();
-            // for (int i = 0; i < robot_poses.Count; i++) {
-            //     poses_to_sent[i] = 
-            // }
-            
-            request.poses = robot_poses.ToArray();
-            Debug.Log("I send the service msg");
-            m_Ros.SendServiceMessage<PandaMoverServiceResponse>(simplemoves, request, PandaTrajectoryResponse);
-            robot_poses = new List<PoseMsg>(); // remove all the poses after request was sent 
-        } else {
-            Debug.Log("Dont have any poses to publish");
-        }
-        
-    }
-
-
     // sending robot to the predefined home pose 
     public void PublishJoints() {
         // dealing with target placement 
         // m_Target.transform.position = new Vector3(m_Target.transform.position.x, 0.63f, m_Target.transform.position.z);
         m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
         m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
-        var request = new PandaMoverServiceRequest(); 
-        request.joints_input = CurrentJointConfig();
-        // request.messagename = new RosMessageTypes.Diagnostic.SelfTestResponse {
-        //     id = "home"
-        // };
+        var request = new PandaPickUpRequest();
+        // getting current joint state
+        double[] joints = new double[k_NumRobotJoints];
+        for (var i = 0; i < k_NumRobotJoints; i++)
+        {
+            // Debug.Log(i);
+            joints[i] = m_JointArticulationBodies[i].jointPosition[0];
+            // Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
+        }
+        request.current_joints = joints;        
+        
         Vector3 newObjTransformation = Reciever.positions.Pop();
         Quaternion newObjRotation = Reciever.rotations.Pop();
-        // Vector3 newObjTransformation = m_Target.transform.position;
-        // Quaternion newObjRotation = m_Target.transform.rotation;
-        // Pick Pose
-        newObjTransformation.y = 0.64f;
+        Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0);
+
+        newObjTransformation.y = 0.1f;
+        Debug.Log($"offset {m_PickPoseOffset}");
+
         request.pick_pose = new PoseMsg
         {
            
-            position = (newObjTransformation + m_PickPoseOffset).To<FLU>(), // m_Target.transform.position
+            position = (newObjTransformation).To<FLU>(), // m_Target.transform.position
 
             // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
-            orientation = Quaternion.Euler(90, newObjRotation.eulerAngles.y, 0).To<FLU>() //m_Target.transform
+            orientation = hand_orientation.To<FLU>() //m_Target.transform
         };
         // for console canvas 
-        messagestoshow.Push($"position {newObjTransformation} ort {newObjRotation.eulerAngles.y}");
-        Debug.Log($"position {newObjTransformation} ort {newObjRotation.eulerAngles.y}");
+        // messagestoshow.Push($"position {newObjTransformation} ort {newObjRotation.eulerAngles.y}");
+        Debug.Log($"position {request.pick_pose.position} ort {request.pick_pose.orientation}");
         // Place Pose
         Vector3 placepose = m_TargetPlacement.transform.position;
-        placepose.y = 0.64f;
+        placepose.y = 0.1f;
         request.place_pose = new PoseMsg
         {
-            position = (placepose + m_PickPoseOffset).To<FLU>(),
-            orientation = m_PickOrientation.To<FLU>()
+            position = (placepose).To<FLU>(),
+            orientation = hand_orientation.To<FLU>()
         };
-
-        m_Ros.SendServiceMessage<PandaMoverServiceResponse>(m_RosServiceName, request, PandaTrajectoryResponse);
+        Debug.Log($"position place {placepose}");
+        m_Ros.SendServiceMessage<PandaPickUpResponse>(m_RosServiceName, request, PandaTrajectoryResponse);
     }
 
-    void PandaTrajectoryResponse(PandaMoverServiceResponse response)
+    void PandaTrajectoryResponse(PandaPickUpResponse response)
     {
         // Debug.Log(response);
         if (response.trajectories.Length > 0)
         {
             Debug.Log("Trajectory returned.");
             messagestoshow.Push("Trajectory returned.");
-            responseforLine = response;
+            Debug.Log(response);
+            // responseforLine = response;
             StartCoroutine(ExecuteTrajectories(response.trajectories));
         }
         else
@@ -363,7 +340,7 @@ public class PandaPlanner : MonoBehaviour
         string printing = "";
         // response.data[1]
         for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++) {
-            Debug.Log($"joint {joint} position {response_array[joint]}");
+            // Debug.Log($"joint {joint} position {response_array[joint]}");
             printing += response_array[joint].ToString() + " next ";
             // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
             var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
@@ -412,7 +389,20 @@ public class PandaPlanner : MonoBehaviour
         //     StartCoroutine(ExecuteTrajectories(result));
         // }
     }
-    // void ExectuteMoverResults(MoveGroupActionResult result) {
+  
+
+
+    enum Poses
+    {
+        PreGrasp,
+        Grasp,
+        PickUp,
+        Place
+    }
+}
+}
+
+  // void ExectuteMoverResults(MoveGroupActionResult result) {
     //     // more details and message structure in the message file
     //     // getting initial joints state (start) and the joint_trajectory points
     //     float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
@@ -427,17 +417,29 @@ public class PandaPlanner : MonoBehaviour
     //     //     StartCoroutine(ExecuteTrajectories(result));
     //     // }
     // }
+    //     public void Publish_many()
+    // {
+    //     colorindex = 10;
+    //     if (robot_poses.Count > 0) {
+    //         var request = new PandaMoverManyPosesRequest(); // this is where you edited a lot of shit
+    //         request.joints_input = CurrentJointConfig();
 
-    enum Poses
-    {
-        PreGrasp,
-        Grasp,
-        PickUp,
-        Place
-    }
-}
-
-
+    //         // Vector3 newObjTransformation = homePose;
+    //         // PoseMsg[] poses_to_sent = new PoseMsg[robot_poses.Count];
+    //         // Quaternion newObjRotation = Quaternion.Euler(0, 0, 0).To<FLU>();
+    //         // for (int i = 0; i < robot_poses.Count; i++) {
+    //         //     poses_to_sent[i] = 
+    //         // }
+            
+    //         request.poses = robot_poses.ToArray();
+    //         Debug.Log("I send the service msg");
+    //         m_Ros.SendServiceMessage<PandaMoverServiceResponse>(simplemoves, request, PandaTrajectoryResponse);
+    //         robot_poses = new List<PoseMsg>(); // remove all the poses after request was sent 
+    //     } else {
+    //         Debug.Log("Dont have any poses to publish");
+    //     }
+        
+    // }
 // send me home copy 
 
 // public void SendMeHome()
