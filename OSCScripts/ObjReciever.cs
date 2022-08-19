@@ -25,14 +25,14 @@ public class ObjReciever : MonoBehaviour {
     }
 	
 	// Update is called once per frame
-	void Update () {
-        foreach (OscMessage m in osc.messagesReceived) {
-            if (m.address == "/objReciever") {
-                Debug.Log($"I recieved {m}");
-                OnObjectRecieved(m);
-            }
-        }
-	}
+	// void Update () {
+    //     foreach (OscMessage m in osc.messagesReceived) {
+    //         if (m.address == "/objReciever") {
+    //             Debug.Log($"I recieved {m}");
+    //             OnObjectRecieved(m);
+    //         }
+    //     }
+	// }
     public void CreateObject() { 
         foreach (OscMessage m in osc.messagesReceived) {
             // Debug.Log($"I recieveed {m}");

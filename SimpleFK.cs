@@ -5,6 +5,8 @@ using RosMessageTypes.NiryoMoveit;
 using System.Linq;
 using RosMessageTypes.Geometry;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
+using PandaRobot;
+
 public class SimpleFK : MonoBehaviour
 {
     private GameObject robot;
@@ -13,7 +15,7 @@ public class SimpleFK : MonoBehaviour
     public const string joint_name = "link";
     private int framecount = 0;
     private int framecount_lineupdate = 0;
-    public TrajectoryPlanner planner;
+    public PandaPlanner planner;
     public List<float[]> spherecolors;
     public LineRenderer Line;
     public GameObject waypointObject;
