@@ -15,3 +15,12 @@ https://github.com/thomasfredericks/UnityOSC
 
 
 https://github.com/Unity-Technologies/Unity-Robotics-Hub
+
+
+### Iteration 2 - Franka
+
+1. run Demo
+2. Launch Unity project/VR app
+3. Rosrun planner
+4. add obstacle
+5. Start planning and interacting 
