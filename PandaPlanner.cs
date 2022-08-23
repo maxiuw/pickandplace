@@ -58,7 +58,7 @@ public class PandaPlanner : MonoBehaviour
     [HideInInspector]
     public Stack<string> messagestoshow;
     [HideInInspector]
-    public PandaMoverServiceResponse responseforLine;
+    public PandaPickUpResponse responseforLine;
     public List<Vector3> vectors_for_lines;
     [HideInInspector] 
     public int colorindex = 0;
@@ -242,7 +242,7 @@ public class PandaPlanner : MonoBehaviour
             Debug.Log("Trajectory returned.");
             messagestoshow.Push("Trajectory returned.");
             Debug.Log(response);
-            // responseforLine = response;
+            responseforLine = response;
             StartCoroutine(ExecuteTrajectories(response.trajectories));
         }
         else
@@ -306,7 +306,7 @@ public class PandaPlanner : MonoBehaviour
             // All trajectories have been executed, open the gripper to place the target cube
             OpenGripper();
         }
-        colorindex = 10; // added to stop generating waypoints 
+        // colorindex = 10; // added to stop generating waypoints 
     }
 
     void ExecuteTrajectoriesJointState(FloatListMsg response) {

@@ -43,8 +43,6 @@ public class SimpleFK : MonoBehaviour
         {   
             if (transformation.tag == joint_name) {              
                 jointChain.Add(transformation);
-                // angles.Add(transformation.rotation.eulerAngles.y); // adding rotation above y axis 
-                // Debug.Log(transformation);
             } 
         }        
     }
@@ -89,16 +87,17 @@ public class SimpleFK : MonoBehaviour
 
     public void ForwardKinematics () {
         Vector3 prevPoint = jointChain[0].transform.position;
-        Vector3 axis = new Vector3(0, 1, 0); // rotation around y axis 
+        // Vector3 axis = new Vector3(0, 1, 0); // rotation around y axis 
         Quaternion rotation = Quaternion.identity;
         // Debug.Log(jointChain.Count);
         for (int i = 1; i < jointChain.Count; i++)
         {
             // Rotates around a new axis
-            rotation = jointChain[i-1].transform.rotation; // Quaternion.AngleAxis(angles[i - 1], axis);
+            rotation = jointChain[i-1].transform.rotation; // obtaning rotation quaternion 
             Vector3 nextPoint = prevPoint + rotation * jointChain[i].transform.localPosition;
             prevPoint = nextPoint;
         }
+        prevPoint += new Vector3(0, -0.05f, 0); 
         // add way point of the movement dict 
         try {
             posedict[planner.colorindex].Add(prevPoint);
