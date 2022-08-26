@@ -110,8 +110,8 @@ public class PandaPlanner : MonoBehaviour
         var leftDrive = m_LeftGripper.xDrive;
         var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = -0.15f;
-        rightDrive.target = 0.021f;
+        leftDrive.target = -0.05f;
+        rightDrive.target = -0.05f;
 
         m_LeftGripper.xDrive = leftDrive;
         m_RightGripper.xDrive = rightDrive;
@@ -126,8 +126,8 @@ public class PandaPlanner : MonoBehaviour
         var leftDrive = m_LeftGripper.xDrive;
         var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = 0.18f;
-        rightDrive.target = -0.02f;
+        leftDrive.target = 0.05f;
+        rightDrive.target = 0.05f;
 
         m_LeftGripper.xDrive = leftDrive;
         m_RightGripper.xDrive = rightDrive;
@@ -206,7 +206,7 @@ public class PandaPlanner : MonoBehaviour
         
         Vector3 newObjTransformation = Reciever.positions.Pop();
         Quaternion newObjRotation = Reciever.rotations.Pop();
-        Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
+        Quaternion hand_orientation = Quaternion.Euler(180, 0, newObjRotation.eulerAngles.y); // roty = newObjRotation.eulerAngles.y
         newObjTransformation.y = 0.7f;
         // newObjTransformation.y = 0.2f;
         // Debug.Log($"offset {m_PickPoseOffset}");
@@ -298,6 +298,7 @@ public class PandaPlanner : MonoBehaviour
                     // Wait for robot to achieve pose for all joint assignments
                     yield return new WaitForSeconds(k_JointAssignmentWait);
                 }
+                yield return new WaitForSeconds(k_JointAssignmentWait);
                 if (j == 1) {
                     CloseGripper();   
                     yield return new WaitForSeconds(k_PoseAssignmentWait);

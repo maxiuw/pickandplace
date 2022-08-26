@@ -115,6 +115,7 @@ public class TrajectoryPlanner : MonoBehaviour
 
         m_LeftGripper.xDrive = leftDrive;
         m_RightGripper.xDrive = rightDrive;
+        
     }
 
     /// <summary>
