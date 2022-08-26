@@ -75,7 +75,7 @@ public class ObjReciever : MonoBehaviour {
         Color newColor = new Color(newR, newG, newB);
         // get the prefab of id and assign its properities 
         GameObject prefab = prefabs[prefabIdx];
-        prefab.transform.position = new Vector3(x,0.7f,z); // y = 0 so everything is on the same plane
+        prefab.transform.position = new Vector3(x,0.87f,z); // y = 0 so everything is on the same plane
         prefab.transform.rotation =  rot;
         transform.localScale = newScale;
         // adding the position and rotation to the list so robot can grab it 

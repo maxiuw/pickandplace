@@ -20,7 +20,7 @@ public class PandaPlanner : MonoBehaviour
     // Hardcoded variables
     int k_NumRobotJoints = SourceDestinationPublisher.LinkNames.Length; // has to be adj in the SDP file for diff robots 
     const float k_JointAssignmentWait = 0.08f;
-    const float k_PoseAssignmentWait = 0.5f;
+    const float k_PoseAssignmentWait = 1f;
 
     // Variables required for ROS communication
     [SerializeField]
@@ -41,7 +41,7 @@ public class PandaPlanner : MonoBehaviour
 
     // Assures that the gripper is always positioned above the m_Target cube before grasping.
     readonly Quaternion m_PickOrientation = Quaternion.Euler(90, 90, 0);
-    readonly Vector3 m_PickPoseOffset = Vector3.up * 0.05f;
+    readonly Vector3 m_PickPoseOffset = Vector3.up * 0.01f;
     // Articulation Bodies
     ArticulationBody[] m_JointArticulationBodies;
     ArticulationBody m_LeftGripper;
@@ -108,13 +108,13 @@ public class PandaPlanner : MonoBehaviour
     {
         Debug.Log("Closed Gripper");
         var leftDrive = m_LeftGripper.xDrive;
-        // var rightDrive = m_RightGripper.xDrive;
+        var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = -0.02f;
-        // rightDrive.target = 0.021f;
+        leftDrive.target = -0.15f;
+        rightDrive.target = 0.021f;
 
         m_LeftGripper.xDrive = leftDrive;
-        // m_RightGripper.xDrive = rightDrive;
+        m_RightGripper.xDrive = rightDrive;
     }
 
     /// <summary>
@@ -124,13 +124,13 @@ public class PandaPlanner : MonoBehaviour
     {
         Debug.Log("Opened Gripper");
         var leftDrive = m_LeftGripper.xDrive;
-        // var rightDrive = m_RightGripper.xDrive;
+        var rightDrive = m_RightGripper.xDrive;
 
-        leftDrive.target = 0.02f;
-        // rightDrive.target = -0.02f;
+        leftDrive.target = 0.18f;
+        rightDrive.target = -0.02f;
 
         m_LeftGripper.xDrive = leftDrive;
-        // m_RightGripper.xDrive = rightDrive;
+        m_RightGripper.xDrive = rightDrive;
     }
 
     /// <summary>
@@ -206,10 +206,10 @@ public class PandaPlanner : MonoBehaviour
         
         Vector3 newObjTransformation = Reciever.positions.Pop();
         Quaternion newObjRotation = Reciever.rotations.Pop();
-        Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0);
-
-        newObjTransformation.y = 0.2f;
-        Debug.Log($"offset {m_PickPoseOffset}");
+        Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
+        newObjTransformation.y = 0.7f;
+        // newObjTransformation.y = 0.2f;
+        // Debug.Log($"offset {m_PickPoseOffset}");
 
         request.pick_pose = new PoseMsg
         {
@@ -224,7 +224,7 @@ public class PandaPlanner : MonoBehaviour
         Debug.Log($"position {request.pick_pose.position} ort {request.pick_pose.orientation}");
         // Place Pose
         Vector3 placepose = m_TargetPlacement.transform.position;
-        placepose.y = 0.2f;
+        placepose.y = 0.7f;
         request.place_pose = new PoseMsg
         {
             position = (placepose).To<FLU>(),
@@ -269,11 +269,11 @@ public class PandaPlanner : MonoBehaviour
     /// <param name="response"> MoverServiceResponse received from niryo_moveit mover service running in ROS</param>
     /// <returns></returns>
     IEnumerator ExecuteTrajectories(RobotTrajectoryMsg[] response) {
+        OpenGripper();  
         Debug.Log($"I will got to {response.Length} poses");
         if (response != null)
         {   
-            int j = 0;
-            OpenGripper();            
+            int j = 0;          
             // For every trajectory plan returned
             for (var poseIndex = 0; poseIndex < response.Length; poseIndex++)
             {
@@ -298,10 +298,12 @@ public class PandaPlanner : MonoBehaviour
                     // Wait for robot to achieve pose for all joint assignments
                     yield return new WaitForSeconds(k_JointAssignmentWait);
                 }
-                if (j == 1)
-                    CloseGripper();                
-                yield return new WaitForSeconds(k_PoseAssignmentWait);
-                j++;
+                if (j == 1) {
+                    CloseGripper();   
+                    yield return new WaitForSeconds(k_PoseAssignmentWait);
+                }
+                j++;     
+                yield return new WaitForSeconds(k_PoseAssignmentWait);                
             }
             // All trajectories have been executed, open the gripper to place the target cube
             OpenGripper();
