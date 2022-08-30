@@ -61,7 +61,7 @@ public class ObjReciever : MonoBehaviour {
         int rotx = message.GetInt(4);
         int roty = message.GetInt(5);
         int rotz = message.GetInt(6);
-        Quaternion rot = Quaternion.Euler(0, roty, 0); // rot just around y axis are allowed
+        Quaternion rot = Quaternion.Euler(0, -30, 0); // rot just around y axis are allowed
         // scale 
         float scaleFactor = message.GetInt(7);
         Vector3 newScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);

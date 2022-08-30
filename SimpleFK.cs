@@ -52,7 +52,7 @@ public class SimpleFK : MonoBehaviour
         // dont create a waypoints when picking up the obj or 
         // when going back to the starting point when redoing the trajectory after waypoints were moves 
         if (planner.responseforLine.trajectories.Length > 0 & framecount > 35 & 
-                                (planner.colorindex != 10)) { //planner.colorindex != 1 & planner.colorindex != 2
+                                (planner.colorindex != -1)) { //planner.colorindex != 1 & planner.colorindex != 2
             {
                 Debug.Log(planner.colorindex);
                 ForwardKinematics();
@@ -123,10 +123,12 @@ public class SimpleFK : MonoBehaviour
         foreach (int key in posedict.Keys) {
             foreach (Vector3 vect in posedict[key]) { 
                 if (k == 0 | k == waypoints.Count-1 | waypoints[k].transform.position != vect | key == 1 | key == 2) {
-                     planner.robot_poses.Add(new PoseMsg
+                    Vector3 position = waypoints[k].transform.position;
+                    position.y -= planner.panda_y_offset; // offset neccessary for the ROS planner 
+                    planner.robot_poses.Add(new PoseMsg
                     {
-                    position = waypoints[k].transform.position.To<FLU>(), // SPHERE position 
-                    orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
+                    position = position.To<FLU>(), // SPHERE position 
+                    orientation = Quaternion.Euler(180, 0, 0).To<FLU>() // home rotation
                     // orientation = rotation.To<FLU>() // SPHERE rotation
                     });
                     numofpt++;
@@ -164,9 +166,11 @@ public class SimpleFK : MonoBehaviour
         for (int i = 0; i < waypoints.Count; i ++)
             Line.SetPosition(i,waypoints[i].transform.position);
     }  
+
     public void enable_waypoints() {
         foreach (GameObject waypt in waypoints) {
             // for spehere 
+            // enable waypoints in the line so that the user can mvoe them around
             // TODO for the endeff
             try {
                 waypt.GetComponent<SphereCollider>().enabled = true;
