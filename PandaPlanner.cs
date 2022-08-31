@@ -21,7 +21,7 @@ namespace PandaRobot
         // Hardcoded variables
         int k_NumRobotJoints = SourceDestinationPublisher.LinkNames.Length; // has to be adj in the SDP file for diff robots 
         const float k_JointAssignmentWait = 0.08f;
-        const float k_PoseAssignmentWait = 1f;
+        const float k_PoseAssignmentWait = 0.05f;
 
         // Variables required for ROS communication
         [SerializeField]
@@ -355,11 +355,11 @@ namespace PandaRobot
                         // Wait for robot to achieve pose for all joint assignments
                         yield return new WaitForSeconds(k_JointAssignmentWait);
                     }
-                    yield return new WaitForSeconds(k_JointAssignmentWait);
+                    // yield return new WaitForSeconds(k_JointAssignmentWait);
                     if (colorindex == 1)
                     {
                         CloseGripper();
-                        yield return new WaitForSeconds(k_PoseAssignmentWait);
+                        // yield return new WaitForSeconds(k_PoseAssignmentWait);
                     }
                     colorindex++;
                     yield return new WaitForSeconds(k_PoseAssignmentWait);
