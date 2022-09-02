@@ -16,12 +16,13 @@ public class ObjReciever : MonoBehaviour {
     [HideInInspector]
     public List<int> ids;
     // Start is called before the first frame update
-
+    List<string> object_names;
     void Start () {
        osc.SetAddressHandler("/objReciever", OnObjectRecieved);
        positions = new Stack<Vector3>();
        rotations = new Stack<Quaternion>();
-       ids = new  List<int>();
+       object_names = new List<string>();
+       ids = new List<int>();
     }
 	
 	// Update is called once per frame
@@ -81,10 +82,23 @@ public class ObjReciever : MonoBehaviour {
         // adding the position and rotation to the list so robot can grab it 
         positions.Push(prefab.transform.position);
         rotations.Push(prefab.transform.rotation);
-        prefab.SetActive(true);
         prefab.name = $"cube{id}";
-        
-        GameObject newObj = Instantiate(prefab);
+        object_names.Add(prefab.name);
+        ActivatePrefab(prefab);
         // prefab.GetComponent<Renderer>().material.color = newColor;
 	}
+    public void ActivatePrefab(GameObject prefab) {
+        prefab.SetActive(true);     
+        GameObject newObj = Instantiate(prefab);
+    }
+    public void ResetObject() {
+        // 1 find and destroy the object
+        GameObject cube = GameObject.Find(object_names[object_names.Count -1]);
+        Destroy(cube);
+        // 2 activate prebaf 
+        GameObject prefab = prefabs[0]; // hardcoded 0 - this is the class of the prefabs
+        prefab.transform.position = positions.Peek(); // peek does not remove an elemtn
+        prefab.transform.rotation =  rotations.Peek();
+        ActivatePrefab(prefab);
+    }
 }
