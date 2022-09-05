@@ -445,6 +445,9 @@ namespace PandaRobot
             // }
         }
 
+        void SendTrajectoriesToRealRobot() {
+            
+        }
 
 
         enum Poses
