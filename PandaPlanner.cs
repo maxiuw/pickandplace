@@ -68,9 +68,10 @@ namespace PandaRobot
         public string subscriber_topicname = "/joint_state_unity";
         string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
         Quaternion newObjRotation;
+        string realrobot_move_topic = "realrobot_publisher"; 
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
-
+        List<RobotTrajectoryMsg> trajectoriesForRobot;
         /// <summary>
         ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
         ///     Find left and right finger joints and assign them to their respective articulation body objects.
@@ -88,15 +89,17 @@ namespace PandaRobot
             // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
             m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
-
             // initiate subscriber 
             m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
+            m_Ros.RegisterPublisher<RobotTrajectoryMsg>("publisher_topic");
+
             // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
             // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
             // get robot's joints 
             m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
             // rotation of the object that was detected, "global" to "hack" :) 
             newObjRotation = new Quaternion();
+            trajectoriesForRobot = new List<RobotTrajectoryMsg>();
             var linkName = string.Empty;
             for (var i = 0; i < k_NumRobotJoints; i++)
             {
@@ -274,6 +277,8 @@ namespace PandaRobot
                 Debug.Log("Trajectory returned.");
                 messagestoshow.Push("Trajectory returned.");
                 Debug.Log(response);
+                Debug.Log("Cleaned trajectories for the robot");
+                trajectoriesForRobot = new List<RobotTrajectoryMsg>();
                 responseforLine = response;
                 StartCoroutine(ExecuteTrajectories(response.trajectories));
             }
@@ -334,6 +339,8 @@ namespace PandaRobot
                 // For every trajectory plan returned
                 for (var poseIndex = 0; poseIndex < response.Length; poseIndex++)
                 {
+                    // adding the trajectories so they can be later on pulished for the robot 
+                    trajectoriesForRobot.Add(response[poseIndex]);
                     // colorindex = 0;
                     // For every robot pose in trajectory plan
                     foreach (var t in response[poseIndex].joint_trajectory.points)
@@ -446,7 +453,13 @@ namespace PandaRobot
         }
 
         void SendTrajectoriesToRealRobot() {
-            
+            // proposed traj should be stored in the variable RobotTrajMsg
+            // after trajectory are discussed and accepted, this function should publish them to the topic
+            // moveit_unity_node exectues them on the real world robot 
+            foreach (RobotTrajectoryMsg msg in trajectoriesForRobot) {
+                Debug.Log("trajectories were sent");
+                m_Ros.Publish(realrobot_move_topic, msg);
+            }  
         }
 
 
