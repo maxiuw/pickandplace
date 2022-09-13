@@ -51,7 +51,7 @@ public class SimpleFK : MonoBehaviour
         framecount++;
         // dont create a waypoints when picking up the obj or 
         // when going back to the starting point when redoing the trajectory after waypoints were moves 
-        if (planner.responseforLine.trajectories.Length > 0 & framecount > 35 & 
+        if (planner.responseforLine.trajectories.Length > 0 & framecount > 25 & 
                                 (planner.colorindex != -1)) { //planner.colorindex != 1 & planner.colorindex != 2
             {
                 Debug.Log(planner.colorindex);
@@ -60,7 +60,7 @@ public class SimpleFK : MonoBehaviour
                 framecount = 0; 
             }
         }
-        if (framecount_lineupdate > 30 & waypoints.Count > 5) {
+        if (framecount_lineupdate > 25 & waypoints.Count > 5) {
             framecount_lineupdate = 0;
             updateLine();
         }

@@ -91,7 +91,7 @@ namespace PandaRobot
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
             // initiate subscriber 
             m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
-            m_Ros.RegisterPublisher<RobotTrajectoryMsg>("publisher_topic");
+            m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
 
             // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
             // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
@@ -452,7 +452,7 @@ namespace PandaRobot
             // }
         }
 
-        void SendTrajectoriesToRealRobot() {
+        public void SendTrajectoriesToRealRobot() {
             // proposed traj should be stored in the variable RobotTrajMsg
             // after trajectory are discussed and accepted, this function should publish them to the topic
             // moveit_unity_node exectues them on the real world robot 
