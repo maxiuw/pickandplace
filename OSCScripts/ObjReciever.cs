@@ -93,8 +93,9 @@ public class ObjReciever : MonoBehaviour {
     }
     public void ResetObject() {
         // 1 find and destroy the object
-        GameObject cube = GameObject.Find(object_names[object_names.Count -1]);
-        Destroy(cube);
+        Debug.Log(object_names[object_names.Count -1]);
+        GameObject cube = GameObject.Find($"{object_names[object_names.Count -1]}(Clone)");
+        DestroyImmediate(cube);
         // 2 activate prebaf 
         GameObject prefab = prefabs[0]; // hardcoded 0 - this is the class of the prefabs
         prefab.transform.position = positions.Peek(); // peek does not remove an elemtn
