@@ -242,10 +242,10 @@ namespace PandaRobot
                 joints[i] = m_JointArticulationBodies[i].jointPosition[0];
             }
             request.current_joints = joints;
-            Vector3 newObjTransformation = Reciever.positions.Pop();
-            newObjRotation = Reciever.rotations.Pop();
+            Vector3 newObjTransformation = Reciever.positions.Peek();
+            newObjRotation = Reciever.rotations.Peek();
             Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0); // roty = newObjRotation.eulerAngles.y
-            newObjTransformation.y = 0.7f;
+            newObjTransformation.y = 0.4f;
             // newObjTransformation.y = 0.2f;
             // Debug.Log($"offset {m_PickPoseOffset}");
             request.pick_pose = new PoseMsg
