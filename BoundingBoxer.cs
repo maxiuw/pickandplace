@@ -186,7 +186,7 @@ public class BoundingBoxer : MonoBehaviour
         writer.WriteLine("}");
         }
         Debug.Log("Annotations created!");
-        Quit();
+        // Quit();
     }
 
     public void Quit() {
