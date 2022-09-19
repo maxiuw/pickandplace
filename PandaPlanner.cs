@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using RosMessageTypes.Geometry;
+using RosMessageTypes.Std;
 // using RosMessageTypes.NiryoMoveit;
 using RosMessageTypes.Panda;
 using Unity.Robotics.ROSTCPConnector;
@@ -70,6 +71,7 @@ namespace PandaRobot
         string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
         Quaternion newObjRotation;
         string realrobot_move_topic = "realrobot_publisher"; 
+        string pub_number_of_poses = "total_poses_n";
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
@@ -93,6 +95,7 @@ namespace PandaRobot
             // initiate subscriber 
             m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
+            m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
 
             // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
             // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
@@ -231,6 +234,7 @@ namespace PandaRobot
         // sending robot to the predefined home pose 
         public void PublishJoints()
         {
+
             // dealing with target placement 
             // m_Target.transform.position = new Vector3(m_Target.transform.position.x, 0.63f, m_Target.transform.position.z);
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
@@ -300,6 +304,7 @@ namespace PandaRobot
             // Debug.Log(response);
             if (response.trajectories.Length > 0)
             {
+                trajectoriesForRobot = new List<RobotTrajectoryMsg>();
                 Debug.Log("Trajectory returned.");
                 messagestoshow.Push("Trajectory returned.");
                 Debug.Log(response);
@@ -333,6 +338,9 @@ namespace PandaRobot
         {
             OpenGripper();
             colorindex = 0;
+            Int16Msg msg = new Int16Msg();
+            msg.data =  (short) response.Length;
+            m_Ros.Publish(pub_number_of_poses, msg);
             Debug.Log($"I will got to {response.Length} poses");
             if (response != null)
             {
