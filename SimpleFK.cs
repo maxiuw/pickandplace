@@ -1,10 +1,16 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System;
-using RosMessageTypes.NiryoMoveit;
+using System.Collections;
 using System.Linq;
 using RosMessageTypes.Geometry;
+// using RosMessageTypes.NiryoMoveit;
+using RosMessageTypes.Panda;
+using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
+using Unity.Robotics.ROSTCPConnector.MessageGeneration;
+using UnityEngine;
+using System.Collections.Generic;
+using RosMessageTypes.Moveit;
+using RosMessageTypes.Sensor;
 using PandaRobot;
 
 public class SimpleFK : MonoBehaviour
@@ -22,8 +28,13 @@ public class SimpleFK : MonoBehaviour
     private List<GameObject> waypoints; // where the waypoints are saved and the position is updated (if they are moved)
     private Dictionary<int,List<Vector3>> posedict; // where initial position of the waypoints is saved
     public Shader shade; 
+    ROSConnection m_Ros;
     void Start()
     {
+        // craeting ros instance so on activation of the waypoints, also the robot's poses are reset to the real robot's pooses 
+        m_Ros = ROSConnection.GetOrCreateInstance();
+        m_Ros.RegisterPublisher<FloatListMsg>(planner.subscriber_topicname);
+        
         Line = GetComponent<LineRenderer>();
         spherecolors = new List<float[]>();
         for (int i = 0; i < 4; i++)
@@ -174,6 +185,7 @@ public class SimpleFK : MonoBehaviour
             // TODO for the endeff
             try {
                 waypt.GetComponent<SphereCollider>().enabled = true;
+                m_Ros.Publish(planner.subscriber_topicname, planner.real_robot_position);
             } catch {
                 Debug.Log("Does not have a collider, wont be able to grab it ");
             }

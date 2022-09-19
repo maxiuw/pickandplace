@@ -53,6 +53,7 @@ namespace PandaRobot
         ROSConnection m_Ros;
 
         /// added by maciej
+        public FloatListMsg real_robot_position;
         public ObjReciever Reciever;
         public GameObject[] prefabs;
         [SerializeField]
@@ -385,6 +386,7 @@ namespace PandaRobot
             // Debug.Log(response.ToString);
             Debug.Log("end of message");
             // RunTrajectories(FloatListMsg response)
+            real_robot_position = response;
             StartCoroutine(RunTrajectories(response));
 
         }
