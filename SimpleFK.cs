@@ -128,14 +128,22 @@ public class SimpleFK : MonoBehaviour
 
     public void sendWaypoints() {
         // TODO MAKE IT WORK WELL :)
-         // send waypoints to the puhlisher 
+        // send waypoints to the puhlisher 
+        // at each pose (pose[key]) we generate n waypoint (depending on how long is the move), k waypoints per frame
+        // iteration over poses and over the waypoints which are then saved there 
         int k = 0;
         int numofpt = 0;
         foreach (int key in posedict.Keys) {
             foreach (Vector3 vect in posedict[key]) { 
-                if (k == 0 | k == waypoints.Count-1 | waypoints[k].transform.position != vect | key == 1 | key == 2) {
+                Debug.Log($"{waypoints.Count}, {posedict.Keys.Count}, {posedict[key].Count}, {key}");
+                // make sure we will go to pre pickup, pick up and the last pose 
+                Debug.Log($"last {posedict.Keys.Last()}");
+                if (k == waypoints.Count - 1 | k == (posedict[0].Count + posedict[1].Count) | k == posedict[0].Count | waypoints[k].transform.position != vect) {
+                    Debug.Log($"added {k}th waypoint");
                     Vector3 position = waypoints[k].transform.position;
                     position.y -= planner.panda_y_offset; // offset neccessary for the ROS planner 
+                    if (key == 1)
+                        position.y -= 0.02f;
                     planner.robot_poses.Add(new PoseMsg
                     {
                     position = position.To<FLU>(), // SPHERE position 
@@ -143,6 +151,9 @@ public class SimpleFK : MonoBehaviour
                     // orientation = rotation.To<FLU>() // SPHERE rotation
                     });
                     numofpt++;
+                    Destroy(waypoints[k]);
+                    k++;
+                    continue;
                 }
                 Destroy(waypoints[k]);
                 k++;

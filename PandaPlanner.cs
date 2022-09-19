@@ -372,6 +372,7 @@ namespace PandaRobot
                         yield return new WaitForSeconds(k_JointAssignmentWait);
                     }
                     // yield return new WaitForSeconds(k_JointAssignmentWait);
+                    // if ((response.Length == 5 & colorindex == 1) | ((response.Length > 5 & colorindex == 2)))
                     if (colorindex == 1)
                     {
                         CloseGripper();
