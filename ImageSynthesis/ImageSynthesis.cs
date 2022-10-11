@@ -19,7 +19,7 @@ using System.IO;
 public class ImageSynthesis : MonoBehaviour {
 
 	// pass configurationt
-	private CapturePass[] capturePasses = new CapturePass[] {
+	public CapturePass[] capturePasses = new CapturePass[] {
 		new CapturePass() { name = "_img" },
 		new CapturePass() { name = "_id", supportsAntialiasing = false },
 		new CapturePass() { name = "_layer", supportsAntialiasing = false },
@@ -28,7 +28,7 @@ public class ImageSynthesis : MonoBehaviour {
 		new CapturePass() { name = "_flow", supportsAntialiasing = false, needsRescale = true } // (see issue with Motion Vectors in @KNOWN ISSUES)
 	};
 
-	struct CapturePass {
+	public struct CapturePass {
 		// configuration
 		public string name;
 		public bool supportsAntialiasing;
