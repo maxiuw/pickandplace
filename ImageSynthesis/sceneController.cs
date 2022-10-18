@@ -94,7 +94,7 @@ public class sceneController : MonoBehaviour
             newObj.obj.transform.position = newPos;
             // newObj.obj.transform.rotation = newRot;
             // GameObject newObj = Instantiate(prefab, newPos, newRot);
-            float scaleFactor = Random.Range(0.5f, 3);
+            float scaleFactor = Random.Range(0.5f, 1);
             Vector3 newScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
             newObj.obj.transform.localScale = newScale;
             float newR, newG, newB;

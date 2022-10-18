@@ -65,9 +65,9 @@ public class MoveCam : MonoBehaviour
     void MoveAndRecord() { 
         transform.Translate(new Vector3(direction * 0.01f, 0.001f, 0));
         transform.Rotate(new Vector3(0, -direction * 0.1f, 0.05f));
-        if (currentf % 5 == 0) {
-            cam.Save($"000{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 2); 
-            cam.Save($"000{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 3);
+        if (currentf % 10 == 0) {
+            cam.Save($"{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 2); 
+            cam.Save($"{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 3);
             cameraposes.Add($"{currentseq}_{currentf}", cam.transform);
         }
         

@@ -170,15 +170,14 @@ public class BoundingBoxer : MonoBehaviour
     }
     public void staticSceneAnnotator(string name = "labels") {
         objectsTaged = GameObject.FindGameObjectsWithTag("object");
-        using (StreamWriter writer = new StreamWriter($"{path}/{name}.json")) {
+        using (StreamWriter writer = new StreamWriter($"{path}/labels/{name}.json")) {
             writer.WriteLine("{");
             for (int i = 0; i < objectsTaged.Length; i++) {
                 writer.WriteLine($"\"{i}\":");
                 writer.WriteLine("{");
                 int length = objectsTaged[i].gameObject.name.Length;
                 name = objectsTaged[i].gameObject.name;
-                name.Remove(length-8, 7);
-                writer.WriteLine($"\"name\": \"{name}\",");
+                writer.WriteLine($"\"name\": \"{name.Remove(length-8, 8)}\",");
                 writer.Write($"\"position\": [{objectsTaged[i].gameObject.transform.position.x},{objectsTaged[i].gameObject.transform.position.z},{objectsTaged[i].gameObject.transform.position.y}],");
                 writer.Write($"\"rotation\": [{objectsTaged[i].gameObject.transform.rotation.x},{objectsTaged[i].gameObject.transform.rotation.z},{objectsTaged[i].gameObject.transform.rotation.y}, {objectsTaged[i].gameObject.transform.rotation.w}],");
                 writer.Write($"\"scale\": [{objectsTaged[i].gameObject.transform.localScale.x},{objectsTaged[i].gameObject.transform.localScale.z},{objectsTaged[i].gameObject.transform.localScale.y}]");
