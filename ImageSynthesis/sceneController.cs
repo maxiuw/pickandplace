@@ -7,6 +7,7 @@ public class sceneController : MonoBehaviour
     // synth is going to be a camera
     public ImageSynthesis synth;
     public GameObject[] prefabs;
+    public GameObject[] bases;
     [Range(0.0f, 100.0f)]
     public int maxObjects = 50;
     float maxX = 0.35f;
@@ -17,6 +18,7 @@ public class sceneController : MonoBehaviour
     // Start is called before the first frame update
     private GameObject[] created;
     private shapePool pool;
+    private shapePool poolbases;
     private int frameCount = 0;
     private int valimages;
     public int trainimages = 10;
@@ -25,7 +27,8 @@ public class sceneController : MonoBehaviour
     void Start()
     {
         pool = shapePool.Create(prefabs);
-
+        poolbases = shapePool.Create(bases);
+        GenerateRandom();
         //uncomment if bb are needed 
 
         // boxer.classes = new Dictionary<string, int>();
@@ -75,8 +78,19 @@ public class sceneController : MonoBehaviour
         //     }
         // }
         pool.ReclaimAll();
-        // and now generate new ones 
-        int objnumber = Random.Range(1, maxObjects);
+        poolbases.ReclaimAll();
+        // add base first 
+        int baseidx = Random.Range(0, bases.Length);
+        var newBase = poolbases.Get((shapeLabel)baseidx);
+        float newR, newG, newB;
+        newR = Random.Range(0.0f, 0.3f);
+        newG = Random.Range(0.0f, 0.3f);
+        newB = Random.Range(0.0f, 0.3f);
+        Color newColor = new Color(newR, newG, newB);
+        newBase.obj.GetComponent<Renderer>().material.color = newColor;
+        
+        // and now generate new objects  
+        int objnumber = Random.Range(2, maxObjects);
         for (int i = 0; i < objnumber; i++) {
             // Debug.Log(objnumber);
 
@@ -97,11 +111,11 @@ public class sceneController : MonoBehaviour
             float scaleFactor = Random.Range(0.5f, 1);
             Vector3 newScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
             newObj.obj.transform.localScale = newScale;
-            float newR, newG, newB;
+            // float newR, newG, newB;
             newR = Random.Range(0.0f, 0.3f);
             newG = Random.Range(0.0f, 0.3f);
             newB = Random.Range(0.0f, 0.3f);
-            Color newColor = new Color(newR, newG, newB);
+            newColor = new Color(newR, newG, newB);
             newObj.obj.GetComponent<Renderer>().material.color = newColor;
             // boxer.objects.Add(newObj.obj); //uncomment if bb are needed 
             // Destroy(GetComponent<TheComponentYouWantToDestroy>());            

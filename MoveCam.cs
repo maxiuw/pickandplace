@@ -21,7 +21,9 @@ public class MoveCam : MonoBehaviour
     int width; 
     public BoundingBoxer annotator;
     public sceneController controller;
-    Dictionary<string,Transform> cameraposes;
+    // Dictionary<string,Transform> cameraposes;
+    Dictionary<string,Quaternion> cameraRotations;
+    Dictionary<string,Vector3>  cameraPositions;
     void Start()
     {
         
@@ -40,8 +42,9 @@ public class MoveCam : MonoBehaviour
         width = mainCamera.pixelWidth;
         // Matrix4x4 camMatrix = mainCamera.projectionMatrix;
         Debug.Log(mainCamera.fieldOfView);
-        cameraposes = new Dictionary<string, Transform>();
-        controller.GenerateRandom();
+        cameraPositions = new Dictionary<string, Vector3>();
+        cameraRotations = new Dictionary<string, Quaternion>();
+        
     }
 
     // Update is called once per frame
@@ -54,7 +57,7 @@ public class MoveCam : MonoBehaviour
             // reset the frames
             currentf = 0;
             ResteCam();
-            annotator.staticSceneAnnotator($"labels{currentseq}");
+            annotator.staticSceneAnnotator($"{string.Format("{0:000000}", currentseq)}labels");
             controller.GenerateRandom();
             // increase the seq
             currentseq++;
@@ -65,10 +68,14 @@ public class MoveCam : MonoBehaviour
     void MoveAndRecord() { 
         transform.Translate(new Vector3(direction * 0.01f, 0.001f, 0));
         transform.Rotate(new Vector3(0, -direction * 0.1f, 0.05f));
-        if (currentf % 10 == 0) {
-            cam.Save($"{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 2); 
-            cam.Save($"{currentseq}_{currentf}", width, height, "DanielLeoMaciej/images", 3);
-            cameraposes.Add($"{currentseq}_{currentf}", cam.transform);
+        if (currentf % 10 == 0 & currentf > 0) {
+            string seq = string.Format("{0:000000}", currentseq);
+            string frame = string.Format("{0:000000}", currentf);
+            cam.Save($"{seq}_{frame}", width, height, "DanielLeoMaciej/images", 2); 
+            cam.Save($"{seq}_{frame}", width, height, "DanielLeoMaciej/images", 3);
+            cameraRotations.Add($"{seq}_{frame}", cam.transform.rotation);
+            cameraPositions.Add($"{seq}_{frame}", cam.transform.position);
+            // Debug.Log(cam.transform.position);
         }
         
     }
@@ -86,17 +93,17 @@ public class MoveCam : MonoBehaviour
         while (direction == 0)
             direction = Random.Range(-1,2); 
         WriteCameraPoses();
-        cameraposes = new Dictionary<string, Transform>();
-    }
+        cameraPositions = new Dictionary<string, Vector3>();
+        cameraRotations = new Dictionary<string, Quaternion>();    }
     void WriteCameraPoses() {
-        using (StreamWriter writer = new StreamWriter($"DanielLeoMaciej/cameraposes/cameraPosesSeq{currentseq}.json")) {
+        using (StreamWriter writer = new StreamWriter($"DanielLeoMaciej/cameraposes/{string.Format("{0:000000}", currentseq)}Poses.json")) {
             writer.WriteLine("{");
-            foreach (KeyValuePair<string,Transform> item in cameraposes) {
+            foreach (KeyValuePair<string,Vector3> item in cameraPositions) {
                 writer.WriteLine($"\"{item.Key}\":");
                 writer.WriteLine("{");
-                writer.WriteLine($"\"position\": \"{item.Value.transform.position}\",");
-                writer.WriteLine($"\"rotation\": \"{item.Value.transform.rotation}\"");
-                if (item.Key == cameraposes.Keys.Last()) {
+                writer.WriteLine($"\"position\": \"[{item.Value.x.ToString("f3")},{item.Value.y.ToString("f3")},{item.Value.z.ToString("f3")}]\",");
+                writer.WriteLine($"\"rotation\": \"[{cameraRotations[item.Key].x.ToString("f3")},{cameraRotations[item.Key].y.ToString("f3")},{cameraRotations[item.Key].z.ToString("f3")},{cameraRotations[item.Key].w.ToString("f3")}]\"");
+                if (item.Key == cameraPositions.Keys.Last()) {
                     writer.WriteLine("}");
                 } else {
                     writer.WriteLine("},");

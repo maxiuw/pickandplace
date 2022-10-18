@@ -170,14 +170,26 @@ public class BoundingBoxer : MonoBehaviour
     }
     public void staticSceneAnnotator(string name = "labels") {
         objectsTaged = GameObject.FindGameObjectsWithTag("object");
+        GameObject[] mainBase = GameObject.FindGameObjectsWithTag("bases");
         using (StreamWriter writer = new StreamWriter($"{path}/labels/{name}.json")) {
+            // adding base first 
             writer.WriteLine("{");
+            writer.WriteLine($"\"{0}\":");
+            writer.WriteLine("{");
+            int length = mainBase[0].gameObject.name.Length;
+            name = mainBase[0].gameObject.name;
+            writer.WriteLine($"\"name\": \"{name.Remove(length-7, 7)}\",");
+            writer.Write($"\"position\": [0,0,0],");
+            writer.Write($"\"rotation\": [0,0,0,1],");
+            writer.Write($"\"scale\": [1,1,1]");
+            writer.WriteLine("},");
             for (int i = 0; i < objectsTaged.Length; i++) {
-                writer.WriteLine($"\"{i}\":");
+                // adding every object present in the scene
+                writer.WriteLine($"\"{i+1}\":");
                 writer.WriteLine("{");
-                int length = objectsTaged[i].gameObject.name.Length;
+                length = objectsTaged[i].gameObject.name.Length;
                 name = objectsTaged[i].gameObject.name;
-                writer.WriteLine($"\"name\": \"{name.Remove(length-8, 8)}\",");
+                writer.WriteLine($"\"name\": \"{name.Remove(length-7, 7)}\",");
                 writer.Write($"\"position\": [{objectsTaged[i].gameObject.transform.position.x},{objectsTaged[i].gameObject.transform.position.z},{objectsTaged[i].gameObject.transform.position.y}],");
                 writer.Write($"\"rotation\": [{objectsTaged[i].gameObject.transform.rotation.x},{objectsTaged[i].gameObject.transform.rotation.z},{objectsTaged[i].gameObject.transform.rotation.y}, {objectsTaged[i].gameObject.transform.rotation.w}],");
                 writer.Write($"\"scale\": [{objectsTaged[i].gameObject.transform.localScale.x},{objectsTaged[i].gameObject.transform.localScale.z},{objectsTaged[i].gameObject.transform.localScale.y}]");
