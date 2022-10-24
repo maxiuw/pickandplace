@@ -8,6 +8,7 @@ using RosMessageTypes.Sensor;
 using RosMessageTypes.Std;
 using RosMessageTypes.BuiltinInterfaces;
 using System;
+
 public class CamScript : MonoBehaviour
 {
 
@@ -17,22 +18,29 @@ public class CamScript : MonoBehaviour
     public RawImage display;
     ROSConnection m_Ros;
     CompressedImageMsg img_msg;
-    string webcamiagetopic = "/webcam/image_raw";
-
+    string[] camtopics = {"/camera_arm/image_raw","/camera_top/image_raw"};
+    int currenttopic = 0;
+    // string topcamera = "/camera_top/image_raw";
+    
     void Start() {
         // start the ROS connection
         m_Ros = ROSConnection.GetOrCreateInstance();
         // register topic name 
         // m_Ros.RegisterPublisher<RosMessageTypes.Sensor.ImageMsg>(topicName);
         Debug.Log(m_Ros.RosIPAddress);
-        m_Ros.Subscribe<ImageMsg>(webcamiagetopic, StartStopCam_Clicked);
+        m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
     
     }
     
+    
     public void SwapCam_Clicked() {
+        // switching between two cameras, works for 2 
         if (WebCamTexture.devices.Length > 0) {
             currentCamIdx += 1;
             currentCamIdx %= WebCamTexture.devices.Length;
+            m_Ros.Unsubscribe(camtopics[currenttopic]);
+            currenttopic = Math.Abs(currenttopic - 1);
+            m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
         }
     }
     
@@ -49,7 +57,6 @@ public class CamScript : MonoBehaviour
         texRos = new Texture2D((int) img.width, (int) img.height, TextureFormat.RGB24, false); // , TextureFormat.RGB24
         BgrToRgb(img.data);
         texRos.LoadRawTextureData(img.data);
-
         texRos.Apply();
         display.texture = texRos;        
     }
