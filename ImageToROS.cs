@@ -154,6 +154,6 @@ public class ImageToROS : MonoBehaviour
  
         target_camera.targetTexture = null;
  
-        return mainCameraTexture.GetRawTextureData();;
+        return mainCameraTexture.GetRawTextureData();
     }
 }
