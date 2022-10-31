@@ -26,9 +26,9 @@ public class ObjectRecieverRos : MonoBehaviour {
     [HideInInspector]
     public List<int> ids;
     ROSConnection m_Ros;
-    public float table_y = 0.64f;
-    public float camera_height = 450; // Z of the camera in the world 
-    public float camera_focal_length_logi = 4f; // 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+    public float table_y = 0.8f;
+    public float camera_height = 475; // Z of the camera in the world 
+    public float camera_focal_length_logi = 378; //4 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
     public Dictionary<int,int> label_mapping;
     int best_n_detectableobject = 0;
     JObject lastmsg;
@@ -111,9 +111,10 @@ public class ObjectRecieverRos : MonoBehaviour {
             return;
         }
         // bb format is  x1,y1,x2,y2 (top left corner, bottom right corner in cv2 python coordinate) 
-        float x_cam = (float) (cam.pixelWidth - bb[2] + ((cam.pixelWidth - bb[0]) - (cam.pixelWidth - bb[2]))/2);
-        float y_cam = (float) (cam.pixelHeight - bb[3] + ((cam.pixelHeight - bb[1]) - (cam.pixelHeight - bb[3]))/2);
-       
+        // float x_cam = (float) (cam.pixelWidth - bb[2] + ((cam.pixelWidth - bb[0]) - (cam.pixelWidth - bb[2]))/2);
+        // float y_cam = (float) (cam.pixelHeight - bb[3] + ((cam.pixelHeight - bb[1]) - (cam.pixelHeight - bb[3]))/2);
+        float x_cam = (float) (256 - bb[2] + ((256 - bb[0]) - (256 - bb[2]))/2);
+        float y_cam = (float) (256 - bb[3] + ((256 - bb[1]) - (256 - bb[3]))/2);
         // Debug.Log($"boxes {cam.pixelWidth - bb[0]}, {cam.pixelHeight - bb[1]}, {cam.pixelWidth - bb[2]}, {cam.pixelHeight - bb[3]}");
         Debug.Log($"coor {x_cam}, {y_cam}. class {objclass}");
 
@@ -131,12 +132,17 @@ public class ObjectRecieverRos : MonoBehaviour {
         // Color newColor = new Color(newR, newG, newB);
         // // get the prefab of id and assign its properities 
         GameObject prefab = prefabs[objclass];
+        // from image to the world coordinate, px -> mm
+        float x_world = 0.00001f * (x_cam * 0.264f * 475f) / camera_focal_length_logi;
+        float y_world = 0.00001f * (y_cam * 0.264f * 475f) / camera_focal_length_logi;
 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");
-        Vector3 position = cam.ScreenToWorldPoint(new Vector3(x_cam,y_cam, table_y));
+        // Vector3 position = cam.ScreenToWorldPoint(new Vector3(x_world, y_cam, table_y));
+        Vector3 position = new Vector3(x_world, table_y, y_world);
         position.y = table_y;
+        
         Debug.Log($"new pose {position}");
-        prefab.transform.position = position; // y = 0 so everything is on the same plane
+        // prefab.transform.position = position; // y = 0 so everything is on the same plane
         // prefab.transform.rotation =  rot;
         // transform.localScale = newScale;
         // adding the position and rotation to the list so robot can grab it 
@@ -146,6 +152,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         prefab.name = $"cube{objclass}";
         
         GameObject newObj = Instantiate(prefab);
+        newObj.transform.position = position;
         // prefab.GetComponent<Renderer>().material.color = newColor;
 	}
 }
