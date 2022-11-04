@@ -1,4 +1,5 @@
 // using System.Diagnostics;
+// using System.Diagnostics;
 // using System.Threading.Tasks.Dataflow;
 using System;
 using System.Collections;
@@ -27,13 +28,14 @@ public class ObjectRecieverRos : MonoBehaviour {
     public List<int> ids;
     ROSConnection m_Ros;
     public float table_y = 0.8f;
-    public float camera_height = 475; // Z of the camera in the world 
-    public float camera_focal_length_logi = 378; //4 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+    public float camera_height = 420; // Z of the camera in the world 
+    public float camera_focal_length_logi_x = 302.28f; //4 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+    public float camera_focal_length_logi_y =  546.81f; // from the callibration using https://github.com/ros-perception/image_pipeline
     public Dictionary<int,int> label_mapping;
     int best_n_detectableobject = 0;
     JObject lastmsg;
     int id = 1;
-
+    int camdims = 256;
 
     // labels 
     // bannana 52
@@ -47,13 +49,16 @@ public class ObjectRecieverRos : MonoBehaviour {
         m_Ros = ROSConnection.GetOrCreateInstance();
         label_mapping = new Dictionary<int, int>();
         label_mapping[34] = 4; // org bat, cube 
+        label_mapping[39] = 3; // bottle  
         label_mapping[43] = 4; // org knife, cube 
         label_mapping[46] = 0; // org bammaa 
-        label_mapping[75] = 0; // org vase, bananna
-        // label_mapping[34] = 1; // org bat, pen // 34 baseball bat
         label_mapping[47] = 2; // org appleselected
-        label_mapping[39] = 3; // bottle  
+        label_mapping[75] = 0; // org vase, bananna
+        label_mapping[79] = 4; // org knife, cube 
         m_Ros.Subscribe<StringMsg>("/predictedObjects", DoStuff);
+        positions = new Stack<Vector3>();
+        rotations = new Stack<Quaternion>();
+        
     }
 	void DoStuff(StringMsg msg) {
         
@@ -106,11 +111,18 @@ public class ObjectRecieverRos : MonoBehaviour {
             Debug.Log("I was not trained on that class");
             return;
         }
+        
+        // Debug.Log($"{bb[0]} {bb[1]} {bb[2]} {bb[3]}");
         // bb format is  x1,y1,x2,y2 (top left corner, bottom right corner in cv2 python coordinate) 
         // float x_cam = (float) (cam.pixelWidth - bb[2] + ((cam.pixelWidth - bb[0]) - (cam.pixelWidth - bb[2]))/2);
+
         // float y_cam = (float) (cam.pixelHeight - bb[3] + ((cam.pixelHeight - bb[1]) - (cam.pixelHeight - bb[3]))/2);
-        float x_cam = (float) (256 - bb[2] + ((256 - bb[0]) - (256 - bb[2]))/2);
-        float y_cam = (float) (256 - bb[3] + ((256 - bb[1]) - (256 - bb[3]))/2);
+
+        // float x_cam = (float) (256 - bb[2] + ((256 - bb[0]) - (256 - bb[2]))/2);
+        // float y_cam = (float) (256 - bb[3] + ((256 - bb[1]) - (256 - bb[3]))/2);
+
+        float x_cam = (float) (bb[0] + ((bb[2] - bb[0]) / 2)) - 128; // to center point 0 
+        float y_cam = (float) (bb[1] + ((bb[3] - bb[1]) / 2));
         // Debug.Log($"boxes {cam.pixelWidth - bb[0]}, {cam.pixelHeight - bb[1]}, {cam.pixelWidth - bb[2]}, {cam.pixelHeight - bb[3]}");
         Debug.Log($"coor {x_cam}, {y_cam}. class {objclass}");
 
@@ -129,9 +141,11 @@ public class ObjectRecieverRos : MonoBehaviour {
         // // get the prefab of id and assign its properities 
         GameObject prefab = prefabs[objclass];
         // from image to the world coordinate, px -> mm
-        float x_world = 0.00001f * (x_cam * 0.264f * 475f) / camera_focal_length_logi;
-        float y_world = 0.00001f * (y_cam * 0.264f * 475f) / camera_focal_length_logi;
-
+        float x_world = 0.01f * (x_cam * 0.264f * camera_height) / camera_focal_length_logi_x;
+        float y_world = 0.01f * (y_cam * 0.264f * camera_height) / camera_focal_length_logi_y;
+        y_world += 0.35f; // camera traslation 
+        // if (objclass == 0)
+        //     y_world -= 0.1f; // for banana since its not centered on 0,0 itself 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");
         // Vector3 position = cam.ScreenToWorldPoint(new Vector3(x_world, y_cam, table_y));
         Vector3 position = new Vector3(x_world, table_y, y_world);
