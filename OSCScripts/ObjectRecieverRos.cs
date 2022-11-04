@@ -32,6 +32,8 @@ public class ObjectRecieverRos : MonoBehaviour {
     public Dictionary<int,int> label_mapping;
     int best_n_detectableobject = 0;
     JObject lastmsg;
+    int id = 1;
+
 
     // labels 
     // bannana 52
@@ -41,25 +43,18 @@ public class ObjectRecieverRos : MonoBehaviour {
     // vase 86 - bana
 
     void Start () {
+        // [34, 43, 46, 47, 75, 79]
         m_Ros = ROSConnection.GetOrCreateInstance();
         label_mapping = new Dictionary<int, int>();
+        label_mapping[34] = 4; // org bat, cube 
+        label_mapping[43] = 4; // org knife, cube 
         label_mapping[46] = 0; // org bammaa 
         label_mapping[75] = 0; // org vase, bananna
-        label_mapping[34] = 1; // org bat, pen // 34 baseball bat
+        // label_mapping[34] = 1; // org bat, pen // 34 baseball bat
         label_mapping[47] = 2; // org appleselected
         label_mapping[39] = 3; // bottle  
         m_Ros.Subscribe<StringMsg>("/predictedObjects", DoStuff);
-        // osc.SetAddressHandler("/objReciever", OnObjectRecieved);
-        // positions = new Stack<Vector3>();
-        // rotations = new Stack<Quaternion>();
-        // ids = new  List<int>();
     }
-    // void Update() {
-    //     var mousePos = Input.mousePosition;
-    //     Debug.Log($"on the screen {Input.mousePosition}");
-    //     mousePos.z = 0.63f; // select distance = 10 units from the camera
-    //     Debug.Log(cam.ScreenToWorldPoint(mousePos));
-    // }
 	void DoStuff(StringMsg msg) {
         
         JObject json = JObject.Parse(msg.data);
@@ -93,6 +88,7 @@ public class ObjectRecieverRos : MonoBehaviour {
             OnObjectRecieved(classes[i],lastmsg["bb"][i].ToObject<double[]>());
                 // Debug.Log($"I recieved {json["bb"][0].ToObject<double[]>()}");
         }
+
     }
     
     // // messages are send and recieved in the following manner: 
@@ -118,7 +114,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         // Debug.Log($"boxes {cam.pixelWidth - bb[0]}, {cam.pixelHeight - bb[1]}, {cam.pixelWidth - bb[2]}, {cam.pixelHeight - bb[3]}");
         Debug.Log($"coor {x_cam}, {y_cam}. class {objclass}");
 
-        // Quaternion rot = Quaternion.Euler(0, roty, 0); // rot just around y axis are allowed
+        Quaternion rot = Quaternion.Euler(0, 0, 0); // rot just around y axis are allowed
         // // scale 
         // float scaleFactor = message.GetInt(7);
         // Vector3 newScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
@@ -149,10 +145,15 @@ public class ObjectRecieverRos : MonoBehaviour {
         // positions.Push(prefab.transform.position);
         // rotations.Push(prefab.transform.rotation);
         prefab.SetActive(true);
-        prefab.name = $"cube{objclass}";
+        prefab.name = $"cube{id*objclass}";
         
         GameObject newObj = Instantiate(prefab);
         newObj.transform.position = position;
+        this.positions.Push(position);
+        this.rotations.Push(rot);
+        this.ids.Add(id*objclass);
+        id++;
+
         // prefab.GetComponent<Renderer>().material.color = newColor;
 	}
 }
