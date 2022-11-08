@@ -55,7 +55,8 @@ namespace PandaRobot
 
         /// added by maciej
         public FloatListMsg real_robot_position;
-        public ObjReciever Reciever;
+        // public ObjReciever Reciever;
+        public ObjectRecieverRos Reciever;
         public GameObject[] prefabs;
         [SerializeField]
         private Vector3 homePose;
@@ -250,7 +251,7 @@ namespace PandaRobot
             Vector3 newObjTransformation = Reciever.positions.Peek();
             newObjRotation = Reciever.rotations.Peek();
             Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0); // roty = newObjRotation.eulerAngles.y
-            newObjTransformation.y = 0.4f;
+            // newObjTransformation.y = 0.4f;
             // newObjTransformation.y = 0.2f;
             // Debug.Log($"offset {m_PickPoseOffset}");
             request.pick_pose = new PoseMsg

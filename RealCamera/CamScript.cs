@@ -18,11 +18,11 @@ public class CamScript : MonoBehaviour
     public RawImage display;
     ROSConnection m_Ros;
     CompressedImageMsg img_msg;
-    string[] camtopics = {"/myresult", "/camera_arm/image_raw"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
+    string[] camtopics = {"/myresult", "/camera/color/image_raw"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
     int currenttopic = 0;
-    int height = 256; 
-    int width = 256; // 256 since we resized the image 
+    int width = 640; // 256 since we resized the image 
     // string topcamera = "/camera_top/image_raw";
+    int height = 480; 
     int frame = 0;
     int frame_unity = 0;
     Stack<byte[]> imgmessages;
@@ -78,18 +78,18 @@ public class CamScript : MonoBehaviour
         currenttopic = Math.Abs(currenttopic - 1);
         m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
         // if (currenttopic == 0) {
-        //     width = 640;
+        //     width = 256;
         //     height = 256;
         // } else {
-        //     width = 800;
-        //     height = 448;
+        //     width = 640;
+        //     height = 480;
         // }
-        // imgmessages = new Stack<byte[]>();
+        // // imgmessages = new Stack<byte[]>();
         // texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24
         // }
     }
     public void ComeBack() {
-        XROrgin.transform.position = new Vector3(0, 2.5f, 2.5f);
+        XROrgin.transform.position = new Vector3(0.065f, 0.668f, 0.784f);
     }
     public void movetoImage() {
         XROrgin.transform.position = new Vector3(-13.5f, 25, 66);
