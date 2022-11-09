@@ -59,10 +59,14 @@ public class CamScript : MonoBehaviour
         if (frame_unity == 5) { //  & imgmessages.Count > 0
             frame_unity = 0;
             // BgrToRgb(img.data); // done in the video_stream.cpp file 
-            texRos.LoadRawTextureData(imgmessages.Pop()); //
-            texRos.Apply();
-            display.texture = texRos; 
-            imgmessages = new Stack<byte[]>();
+            try {
+                texRos.LoadRawTextureData(imgmessages.Pop()); //
+                texRos.Apply();
+                display.texture = texRos; 
+                imgmessages = new Stack<byte[]>();
+            } catch {
+                // do nothing
+            }       
         }
     }
     
@@ -96,7 +100,7 @@ public class CamScript : MonoBehaviour
     }
     
     public void StartStopCam_Clicked(ImageMsg img) {
-        Debug.Log("go message");
+        // Debug.Log("go message");
         // stopping the prev output and clearing the texture
         // Debug.Log($"message {frame} recieved {img.data.Length} stack {imgmessages.Count} size {img.height}");
         imgmessages.Push(img.data);

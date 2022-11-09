@@ -71,7 +71,7 @@ public class ObjectRecieverRos : MonoBehaviour {
                 int _ = label_mapping[c];
                 number_detectableobjects++; // in this message 
             } catch {
-                Debug.Log("I was not trained on that class");
+                // Debug.Log("I was not trained on that class");
                 // return;
             }
         }
@@ -108,7 +108,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         try {
             objclass = label_mapping[objclass];
         } catch {
-            Debug.Log("I was not trained on that class");
+            // Debug.Log("I was not trained on that class");
             return;
         }
         
@@ -143,7 +143,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         // from image to the world coordinate, px -> mm
         float x_world = 0.01f * (x_cam * 0.264f * camera_height) / camera_focal_length_logi_x;
         float y_world = 0.01f * (y_cam * 0.264f * camera_height) / camera_focal_length_logi_y;
-        y_world += 0.25f; // camera traslation 
+        y_world += 0.35f; // camera traslation 
         // if (objclass == 0)
         //     y_world -= 0.1f; // for banana since its not centered on 0,0 itself 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");
