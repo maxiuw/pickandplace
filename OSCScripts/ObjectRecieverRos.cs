@@ -28,14 +28,14 @@ public class ObjectRecieverRos : MonoBehaviour {
     public List<int> ids;
     ROSConnection m_Ros;
     public float table_y = 0.8f;
-    public float camera_height = 420; // Z of the camera in the world 
-    public float camera_focal_length_logi_x = 302.28f; //4 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
-    public float camera_focal_length_logi_y =  546.81f; // from the callibration using https://github.com/ros-perception/image_pipeline
+    public float camera_height = 250; // Z of the camera in the world 
+    public float camera_focal_length_logi_x = 774.72f; //4 378 actually seems more possible, https://horus.readthedocs.io/en/release-0.2/source/scanner-components/camera.html
+    public float camera_focal_length_logi_y =  778.43f; // from the callibration using https://github.com/ros-perception/image_pipeline
     public Dictionary<int,int> label_mapping;
     int best_n_detectableobject = 0;
     JObject lastmsg;
-    int id = 1;
-    int camdims = 256;
+    public int id = 1;
+    // int camdims = 256;
 
     // labels 
     // bannana 52
@@ -121,9 +121,9 @@ public class ObjectRecieverRos : MonoBehaviour {
         // float x_cam = (float) (256 - bb[2] + ((256 - bb[0]) - (256 - bb[2]))/2);
         // float y_cam = (float) (256 - bb[3] + ((256 - bb[1]) - (256 - bb[3]))/2);
 
-        float x_cam = (float) (bb[0] + ((bb[2] - bb[0]) / 2)) - 128; // to center point 0 
+        float x_cam = (float) (bb[0] + ((bb[2] - bb[0]) / 2)) - 320; // to center point 0 
         float y_cam = (float) (bb[1] + ((bb[3] - bb[1]) / 2));
-        // Debug.Log($"boxes {cam.pixelWidth - bb[0]}, {cam.pixelHeight - bb[1]}, {cam.pixelWidth - bb[2]}, {cam.pixelHeight - bb[3]}");
+        Debug.Log($"boxes {cam.pixelWidth - bb[0]}, {cam.pixelHeight - bb[1]}, {cam.pixelWidth - bb[2]}, {cam.pixelHeight - bb[3]}");
         Debug.Log($"coor {x_cam}, {y_cam}. class {objclass}");
 
         Quaternion rot = Quaternion.Euler(0, 0, 0); // rot just around y axis are allowed
@@ -143,7 +143,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         // from image to the world coordinate, px -> mm
         float x_world = 0.01f * (x_cam * 0.264f * camera_height) / camera_focal_length_logi_x;
         float y_world = 0.01f * (y_cam * 0.264f * camera_height) / camera_focal_length_logi_y;
-        y_world += 0.35f; // camera traslation 
+        y_world += 0.25f; // camera traslation 
         // if (objclass == 0)
         //     y_world -= 0.1f; // for banana since its not centered on 0,0 itself 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");
@@ -159,13 +159,13 @@ public class ObjectRecieverRos : MonoBehaviour {
         // positions.Push(prefab.transform.position);
         // rotations.Push(prefab.transform.rotation);
         prefab.SetActive(true);
-        prefab.name = $"cube{id*objclass}";
+        prefab.name = $"cube{id}";
         
         GameObject newObj = Instantiate(prefab);
         newObj.transform.position = position;
-        this.positions.Push(position);
-        this.rotations.Push(rot);
-        this.ids.Add(id*objclass);
+        // this.positions.Push(position);
+        // this.rotations.Push(rot);
+        // this.ids.Add(id*objclass);
         id++;
 
         // prefab.GetComponent<Renderer>().material.color = newColor;
