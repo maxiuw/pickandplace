@@ -47,8 +47,11 @@ public class ActivateCanvas : MonoBehaviour
             // do nothing pass
             Debug.Log("you have not added any object");
         }
-        
+        Destroy(lastObject.GetComponent<BoxCollider>());
+        lastObject.AddComponent<BoxCollider>();
         objectCreationCanvas.SetActive(false);
+        // another way 
+        // destroy this object insert the object with the activated simple interactable 
     }
 
     public void InsertObj(int obj_id) {
