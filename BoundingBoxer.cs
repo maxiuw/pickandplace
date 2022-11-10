@@ -29,8 +29,8 @@ public class BoundingBoxer : MonoBehaviour
         annotations = new List<Dictionary<string, float>>();
         // niryoannot = GetNiryoBounds();
         Debug.Log($"cam dims {cam.pixelHeight}, {cam.pixelWidth}"); 
-        objectsTaged = GameObject.FindGameObjectsWithTag("object");
-        staticSceneAnnotator();
+        
+        // staticSceneAnnotator(); // for DanielMaciejLeoProject
         
     }
 
@@ -168,13 +168,28 @@ public class BoundingBoxer : MonoBehaviour
                 writer.WriteLine("}");
             } 
     }
-    void staticSceneAnnotator() {
-        using (StreamWriter writer = new StreamWriter($"{path}/labels.json")) {
+    public void staticSceneAnnotator(string name = "labels") {
+        objectsTaged = GameObject.FindGameObjectsWithTag("object");
+        GameObject[] mainBase = GameObject.FindGameObjectsWithTag("bases");
+        using (StreamWriter writer = new StreamWriter($"{path}/labels/{name}.json")) {
+            // adding base first 
             writer.WriteLine("{");
+            writer.WriteLine($"\"{0}\":");
+            writer.WriteLine("{");
+            int length = mainBase[0].gameObject.name.Length;
+            name = mainBase[0].gameObject.name;
+            writer.WriteLine($"\"name\": \"{name.Remove(length-7, 7)}\",");
+            writer.Write($"\"position\": [0,0,0],");
+            writer.Write($"\"rotation\": [0,0,0,1],");
+            writer.Write($"\"scale\": [1,1,1]");
+            writer.WriteLine("},");
             for (int i = 0; i < objectsTaged.Length; i++) {
-                writer.WriteLine($"\"{i}\":");
+                // adding every object present in the scene
+                writer.WriteLine($"\"{i+1}\":");
                 writer.WriteLine("{");
-                writer.WriteLine($"\"name\": \"{objectsTaged[i].gameObject.name}\",");
+                length = objectsTaged[i].gameObject.name.Length;
+                name = objectsTaged[i].gameObject.name;
+                writer.WriteLine($"\"name\": \"{name.Remove(length-7, 7)}\",");
                 writer.Write($"\"position\": [{objectsTaged[i].gameObject.transform.position.x},{objectsTaged[i].gameObject.transform.position.z},{objectsTaged[i].gameObject.transform.position.y}],");
                 writer.Write($"\"rotation\": [{objectsTaged[i].gameObject.transform.rotation.x},{objectsTaged[i].gameObject.transform.rotation.z},{objectsTaged[i].gameObject.transform.rotation.y}, {objectsTaged[i].gameObject.transform.rotation.w}],");
                 writer.Write($"\"scale\": [{objectsTaged[i].gameObject.transform.localScale.x},{objectsTaged[i].gameObject.transform.localScale.z},{objectsTaged[i].gameObject.transform.localScale.y}]");
@@ -185,5 +200,16 @@ public class BoundingBoxer : MonoBehaviour
             }
         writer.WriteLine("}");
         }
+        Debug.Log("Annotations created!");
+        // Quit();
+    }
+
+    public void Quit() {
+        #if UNITY_STANDALONE
+            Application.Quit();
+        #endif
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #endif
     }
 }
