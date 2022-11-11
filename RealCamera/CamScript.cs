@@ -18,7 +18,7 @@ public class CamScript : MonoBehaviour
     public RawImage display;
     ROSConnection m_Ros;
     CompressedImageMsg img_msg;
-    string[] camtopics = {"/myresult", "/camera/color/image_raw"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
+    string[] camtopics = {"/myresult", "/myresult_rs"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
     int currenttopic = 0;
     int width = 640; // 256 since we resized the image 
     // string topcamera = "/camera_top/image_raw";
@@ -42,7 +42,8 @@ public class CamScript : MonoBehaviour
         m_Ros = ROSConnection.GetOrCreateInstance();
         // register topic name 
         // m_Ros.RegisterPublisher<RosMessageTypes.Sensor.ImageMsg>(topicName);
-        // Debug.Log(m_Ros.RosIPAddress);
+        // Debug.Log(m_Ros.RosIPAddress); 
+        
         texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24   
         // m_Ros.Subscribe<ImageMsg>(camtopics[0], StartStopCam_Clicked);
         // m_Ros.Subscribe<ImageMsg>(camtopics[1], StartStopCam_Clicked);

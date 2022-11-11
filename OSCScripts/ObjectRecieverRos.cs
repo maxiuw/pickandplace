@@ -53,8 +53,9 @@ public class ObjectRecieverRos : MonoBehaviour {
         label_mapping[43] = 4; // org knife, cube 
         label_mapping[46] = 0; // org bammaa 
         label_mapping[47] = 2; // org appleselected
-        label_mapping[75] = 0; // org vase, bananna
+        label_mapping[75] = 2; // org vase, bananna
         label_mapping[79] = 4; // org knife, cube 
+        label_mapping[49] = 5; // orange
         m_Ros.Subscribe<StringMsg>("/predictedObjects", DoStuff);
         positions = new Stack<Vector3>();
         rotations = new Stack<Quaternion>();
@@ -159,7 +160,10 @@ public class ObjectRecieverRos : MonoBehaviour {
         // positions.Push(prefab.transform.position);
         // rotations.Push(prefab.transform.rotation);
         prefab.SetActive(true);
-        prefab.name = $"cube{id}";
+        // var newString = Your_String(4, '0');
+        System.Random rnd = new System.Random();
+        string name = rnd.Next(1, 99).ToString().PadLeft(2,'0');
+        prefab.name = $"cube{name}";
         
         GameObject newObj = Instantiate(prefab);
         newObj.transform.position = position;

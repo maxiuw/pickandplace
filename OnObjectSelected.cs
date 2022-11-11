@@ -14,7 +14,7 @@ public class OnObjectSelected : MonoBehaviour
     public void OnSelected() {
         reciever.positions.Push(this.transform.position);
         reciever.rotations.Push(this.transform.rotation);
-        reciever.ids.Add(int.Parse((this.name.Substring(4)[0]).ToString()));
-        Debug.Log(this.name.Substring(4));
+        reciever.ids.Add(int.Parse((this.name.Substring(4,2)))); // name is cube00clone where 00 is the idx
+        Debug.Log($"I will pick {int.Parse((this.name.Substring(4,2)))}");
     }
 }
