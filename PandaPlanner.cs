@@ -72,6 +72,7 @@ namespace PandaRobot
         string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
         Quaternion newObjRotation;
         string realrobot_move_topic = "realrobot_publisher"; 
+        string resetService_name = "reset_service";
         string pub_number_of_poses = "total_poses_n";
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
@@ -93,6 +94,8 @@ namespace PandaRobot
             // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
             m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
+            m_Ros.RegisterRosService<PandaResetRequest,PandaResetResponse>(resetService_name);
+
             // initiate subscriber 
             m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
@@ -472,6 +475,15 @@ namespace PandaRobot
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, msg);
             }  
+        }
+
+        // service to respond
+        public void ResetService() {
+            PandaResetRequest request = new PandaResetRequest();
+            m_Ros.SendServiceMessage<PandaResetResponse>(resetService_name, request, ResetServiceResp);
+        }
+        public void ResetServiceResp(PandaResetResponse resp) {
+            Debug.Log("pose was reseted");
         }
 
 

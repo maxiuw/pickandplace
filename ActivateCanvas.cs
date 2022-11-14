@@ -8,16 +8,19 @@ public class ActivateCanvas : MonoBehaviour
 {
     public GameObject[] objects;
     public GameObject objectCreationCanvas; // add canvas in unity here
+    public GameObject objectRobotUICanvas;
+
     GameObject lastObject;
     public Button ButtonCube;
     public Button ButtonApple;
     public Button ButtonBottle;
     public Button ButtonBanana;    
+    // string canvas_name = "UICanvasPlaceObject";
     int lastobj_id = 0;
     // Start is called before the first frame update
     void Start() {
         // save last button so that we can remove grabbable 
-        // lastObject = new GameObject();
+        lastObject = new GameObject();
         // delegate between different option for different object we want to insert
         ButtonCube.onClick.AddListener(delegate{InsertObj(3);});
         ButtonApple.onClick.AddListener(delegate{InsertObj(2);});
@@ -29,16 +32,30 @@ public class ActivateCanvas : MonoBehaviour
     {
         // activating the canvas on the click of the vr controller
         // objects have to be added in unity, unactive ojbects cannot be found 
-        objectCreationCanvas.SetActive(true);
-       
+        if (objectCreationCanvas.active == false) {
+            objectCreationCanvas.SetActive(true);
+        } else {
+            Deactivate(objectCreationCanvas.name);
+        }
+    }
+
+    public void ActivateRobotCanvas()
+    {
+        // activating the canvas on the click of the vr controller
+        // objects have to be added in unity, unactive ojbects cannot be found 
+        if (objectRobotUICanvas.active == false) {
+            objectRobotUICanvas.SetActive(true);
+        } else {
+            Deactivate(objectRobotUICanvas.name);
+        }
     }
 
     // Update is called once per frame
-    public void Deactivate()
+    public void Deactivate(string canvasname)
     {
         // deactivating canvas on the clikck 
         Debug.Log("goidfdfad");
-        objectCreationCanvas = GameObject.Find("UICanvasObject");
+        // objectCreationCanvas = GameObject.Find(canvasname);
         string name_to_destroy = lastObject.name;
         try {
             // Behaviour bhw = (Behaviour) lastObject.GetComponent("XRSimpleInteractable");
@@ -55,7 +72,12 @@ public class ActivateCanvas : MonoBehaviour
         Destroy(GameObject.Find(name_to_destroy));
         // lastObject = new GameObject();
         // lastObject.AddComponent<BoxCollider>();
-        objectCreationCanvas.SetActive(false);
+        if (canvasname == objectRobotUICanvas.name) {
+            objectRobotUICanvas.SetActive(false);
+        } else {
+            objectCreationCanvas.SetActive(false);
+        }
+        
 
 
         // another way 
