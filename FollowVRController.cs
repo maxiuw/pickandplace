@@ -12,7 +12,7 @@ public class FollowVRController : MonoBehaviour
     {
         Vector3 controller_position = controller.transform.position;
         controller_position.y += 0.2f;
-        controller_position.z -= 0.2f;
+        controller_position.z -= 0.5f;
         this.transform.position = controller_position;
         this.transform.rotation = controller.transform.rotation;
     }
