@@ -145,7 +145,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         float x_world = 0.01f * (x_cam * 0.264f * camera_height) / camera_focal_length_logi_x;
         float y_world = 0.01f * (y_cam * 0.264f * camera_height) / camera_focal_length_logi_y;
         y_world += 0.35f; // camera traslation 
-        x_world -= 0.05f;
+        x_world += 0.02f;
         // if (objclass == 0)
         //     y_world -= 0.1f; // for banana since its not centered on 0,0 itself 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");

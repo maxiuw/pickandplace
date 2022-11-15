@@ -248,7 +248,7 @@ namespace PandaRobot
             request.current_joints = joints;
             Vector3 newObjTransformation = Reciever.positions.Peek();
             newObjRotation = Reciever.rotations.Peek();
-            Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0); // roty = newObjRotation.eulerAngles.y
+            Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
             // newObjTransformation.y = 0.4f;
             // newObjTransformation.y = 0.2f;
             // Debug.Log($"offset {m_PickPoseOffset}");

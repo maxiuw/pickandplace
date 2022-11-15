@@ -64,8 +64,9 @@ public class ActivateCanvas : MonoBehaviour
             // because collider is assign to the particular iteraction (or smt like that)
             // solution - destroy this object insert the object with the activated simple interactable 
             string name_to_destroy = lastObject.name;
-            InsertObj(lastobj_id, true, false, lastObject.transform);
+            Transform t = lastObject.transform;
             Destroy(GameObject.Find(name_to_destroy));
+            InsertObj(lastobj_id, true, false, t);
         } catch {
             // do nothing pass
             Debug.Log("you have not added any object");

@@ -15,6 +15,7 @@ public class OnObjectSelected : MonoBehaviour
         reciever.positions.Push(this.transform.position);
         reciever.rotations.Push(this.transform.rotation);
         reciever.ids.Add(int.Parse((this.name.Substring(4,2)))); // name is cube00clone where 00 is the idx
+        this.GetComponent<Rigidbody>().isKinematic = false;
         Debug.Log($"I will pick {int.Parse((this.name.Substring(4,2)))}");
     }
 }
