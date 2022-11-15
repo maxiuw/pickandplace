@@ -33,7 +33,7 @@ public class SimpleFK : MonoBehaviour
     {
         // craeting ros instance so on activation of the waypoints, also the robot's poses are reset to the real robot's pooses 
         m_Ros = ROSConnection.GetOrCreateInstance();
-        m_Ros.RegisterPublisher<FloatListMsg>(planner.subscriber_topicname);
+        m_Ros.RegisterPublisher<FloatListMsg>(planner.real_robot_state_topic);
         
         Line = GetComponent<LineRenderer>();
         spherecolors = new List<float[]>();
@@ -144,6 +144,7 @@ public class SimpleFK : MonoBehaviour
                     position.y -= planner.panda_y_offset; // offset neccessary for the ROS planner 
                     if (key == 1)
                         position.y -= 0.02f;
+                    // here we are adding waypoints to the path 
                     planner.robot_poses.Add(new PoseMsg
                     {
                     position = position.To<FLU>(), // SPHERE position 
@@ -159,6 +160,8 @@ public class SimpleFK : MonoBehaviour
                 k++;
             }
         }
+        // reset_robot_pose back to the orgin (real robot state)
+        planner.MoveToRealRobotPose();
         Debug.Log($"i sent {numofpt} waypoints");
         waypoints = new List<GameObject>();
         leave_old_line(); // create a copy of a line so that we can see how the trajectory chagned 
@@ -196,12 +199,26 @@ public class SimpleFK : MonoBehaviour
             // TODO for the endeff
             try {
                 waypt.GetComponent<SphereCollider>().enabled = true;
-                m_Ros.Publish(planner.subscriber_topicname, planner.real_robot_position);
+                // m_Ros.Publish(planner.real_robot_state_topic, planner.real_robot_position);
             } catch {
                 Debug.Log("Does not have a collider, wont be able to grab it ");
             }
         }
     }
+
+    // public void reset_robot_pose(bool destroy_waypoints = false) {
+    //     // at the beggining, unity robot gets real-robot state. You can reset robot back to that state by running this function
+    //     try {
+    //         m_Ros.Publish(planner.real_robot_state_topic, planner.real_robot_position);
+    //     } catch {
+    //         Debug.Log("something went wrong, maybe you have not got the real robot pose or publisher was not registered?");
+    //     }
+    //     // you can reset the whole scene by destroying the waypoints 
+    //     if (destroy_waypoints) {
+    //         // TODO 
+    //     }
+    // }
+
     public void leave_old_line() { 
         GameObject gObject = new GameObject("OldTrajectory");
         LineRenderer lRend = gObject.AddComponent<LineRenderer>();

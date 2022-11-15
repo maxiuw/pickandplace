@@ -68,7 +68,7 @@ namespace PandaRobot
         [HideInInspector]
         public int colorindex = 0;
         public List<PoseMsg> robot_poses;
-        public string subscriber_topicname = "/joint_state_unity";
+        public string real_robot_state_topic = "/joint_state_unity";
         string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
         Quaternion newObjRotation;
         string realrobot_move_topic = "realrobot_publisher"; 
@@ -94,15 +94,10 @@ namespace PandaRobot
             // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
             m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
-            m_Ros.RegisterRosService<PandaResetRequest,PandaResetResponse>(resetService_name);
-
             // initiate subscriber 
-            m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
+            m_Ros.Subscribe<FloatListMsg>(real_robot_state_topic, ExecuteTrajectoriesJointState);
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
             m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
-
-            // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
-            // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
             // get robot's joints 
             m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
             // rotation of the object that was detected, "global" to "hack" :) 
@@ -394,33 +389,39 @@ namespace PandaRobot
         void ExecuteTrajectoriesJointState(FloatListMsg response)
         {
             // For every trajectory plan returned
-            Debug.Log("I got joint states");
-            Debug.Log(response.joints.ToArray());
-            // Debug.Log(response.ToString);
-            Debug.Log("end of message");
-            // RunTrajectories(FloatListMsg response)
-            real_robot_position = response;
-            StartCoroutine(RunTrajectories(response));
-
-        }
-        IEnumerator RunTrajectories(FloatListMsg response)
-        {
-            Debug.Log("I executed runtraj");
-            Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
-            float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-            // double[] response_array = response.joints.ToArray();
-            string printing = "";
-            // response.data[1]
-            for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
-            {
-                // Debug.Log($"joint {joint} position {response_array[joint]}");
-                printing += response_array[joint].ToString() + " next ";
-                // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
-                var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
-                joint1XDrive.target = response_array[joint];
-                m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+            if (this.real_robot_position is null) {
+                Debug.Log("I got joint states");
+                Debug.Log(response.joints.ToArray());
+                // Debug.Log(response.ToString);
+                Debug.Log("end of message");
             }
-            yield return new WaitForSeconds(k_JointAssignmentWait);
+            // save the real robot pose to the buffer
+            this.real_robot_position = response;
+        }
+
+        public void MoveToRealRobotPose()
+        {
+            try {
+                FloatListMsg response = real_robot_position;
+                // Debug.Log(response);
+                // Debug.Log("I executed runtraj");
+                // Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
+                float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+                string printing = "";
+                // response.data[1]
+                for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
+                {
+                    // Debug.Log($"joint {joint} position {response_array[joint]}");
+                    printing += response_array[joint].ToString() + " next ";
+                    // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+                    var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+                    joint1XDrive.target = response_array[joint];
+                    m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+                }
+            } catch {
+                Debug.Log("Wait a couple of seconds, I have not recieved any poses yet.");
+            }
+            
 
         }
         /// <summary>
@@ -478,13 +479,15 @@ namespace PandaRobot
         }
 
         // service to respond
-        public void ResetService() {
-            PandaResetRequest request = new PandaResetRequest();
-            m_Ros.SendServiceMessage<PandaResetResponse>(resetService_name, request, ResetServiceResp);
-        }
-        public void ResetServiceResp(PandaResetResponse resp) {
-            Debug.Log("pose was reseted");
-        }
+        // public void ResetService() {
+        //     m_Ros.
+
+        //     PandaResetRequest request = new PandaResetRequest();
+        //     m_Ros.SendServiceMessage<PandaResetResponse>(resetService_name, request, ResetServiceResp);
+        // }
+        // public void ResetServiceResp(PandaResetResponse resp) {
+        //     Debug.Log("pose was reseted");
+        // }
 
 
         enum Poses
@@ -496,40 +499,3 @@ namespace PandaRobot
         }
     }
 }
-
-// void ExectuteMoverResults(MoveGroupActionResult result) {
-//     // more details and message structure in the message file
-//     // getting initial joints state (start) and the joint_trajectory points
-//     float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-//     RobotTrajectoryMsg[] joint_states = new RobotTrajectoryMsg[1];
-//     joint_states[0] = result.result.planned_trajectory;
-//     StartCoroutine(ExecuteTrajectories(joint_states));
-//     // if (result.result.Length > 0)
-//     // {
-//     //     Debug.Log("Trajectory returned.");
-//     //     messagestoshow.Push("Trajectory returned.");
-//     //     // responseforLine = result;
-//     //     StartCoroutine(ExecuteTrajectories(result));
-//     // }
-// }
-
-// send me home copy 
-
-// public void SendMeHome()
-//     {   
-//         var request = new PandaMoverManyPosesRequest(); 
-//         request.joints_input = CurrentJointConfig();
-
-//         Vector3 newObjTransformation = homePose;
-//         PoseMsg[] poses_to_sent = new PoseMsg[1];
-//         // Quaternion newObjRotation = Quaternion.Euler(0, 0, 0).To<FLU>();
-//         poses_to_sent[0] = new PoseMsg
-//         {
-
-//             position = (newObjTransformation).To<FLU>(), // home position 
-//             orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
-//         };
-//         request.poses = poses_to_sent;
-//         Debug.Log($"I requested {newObjTransformation} {poses_to_sent.Length}");
-//         m_Ros.SendServiceMessage<PandaMoverServiceResponse>(simplemoves, request, PandaTrajectoryResponse);
-//     }

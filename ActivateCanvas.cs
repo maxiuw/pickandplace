@@ -15,13 +15,16 @@ public class ActivateCanvas : MonoBehaviour
     public Button ButtonApple;
     public Button ButtonBottle;
     public Button ButtonBanana;    
+    public Button ButtonOrange;    
+
     // string canvas_name = "UICanvasPlaceObject";
     int lastobj_id = 0;
     // Start is called before the first frame update
     void Start() {
         // save last button so that we can remove grabbable 
-        lastObject = new GameObject();
+        // lastObject = new GameObject();
         // delegate between different option for different object we want to insert
+        ButtonOrange.onClick.AddListener(delegate{InsertObj(4);});
         ButtonCube.onClick.AddListener(delegate{InsertObj(3);});
         ButtonApple.onClick.AddListener(delegate{InsertObj(2);});
         ButtonBottle.onClick.AddListener(delegate{InsertObj(1);});
@@ -54,22 +57,21 @@ public class ActivateCanvas : MonoBehaviour
     public void Deactivate(string canvasname)
     {
         // deactivating canvas on the clikck 
-        Debug.Log("goidfdfad");
+        // Debug.Log("goidfdfad");
         // objectCreationCanvas = GameObject.Find(canvasname);
-        string name_to_destroy = lastObject.name;
         try {
-            // Behaviour bhw = (Behaviour) lastObject.GetComponent("XRSimpleInteractable");
-            // bhw.enabled = true;
-            // bhw = (Behaviour) lastObject.GetComponent("XRGrabInteractable");
-            // bhw.enabled = false
-            
+            // problem - if object is grabbed or smt like that, then we cannot use simple iteractor 
+            // because collider is assign to the particular iteraction (or smt like that)
+            // solution - destroy this object insert the object with the activated simple interactable 
+            string name_to_destroy = lastObject.name;
             InsertObj(lastobj_id, true, false, lastObject.transform);
+            Destroy(GameObject.Find(name_to_destroy));
         } catch {
             // do nothing pass
             Debug.Log("you have not added any object");
         }
 
-        Destroy(GameObject.Find(name_to_destroy));
+        
         // lastObject = new GameObject();
         // lastObject.AddComponent<BoxCollider>();
         if (canvasname == objectRobotUICanvas.name) {
@@ -77,17 +79,10 @@ public class ActivateCanvas : MonoBehaviour
         } else {
             objectCreationCanvas.SetActive(false);
         }
-        
-
-
-        // another way 
-        // destroy this object insert the object with the activated simple interactable 
     }
 
     public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null) {
-        ///
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
-        ///
         // choose object
         GameObject prefab = objects[obj_id];
         lastobj_id = obj_id;
@@ -109,7 +104,7 @@ public class ActivateCanvas : MonoBehaviour
         GameObject newObj = Instantiate(prefab);
         newObj.transform.position = position;
         newObj.transform.rotation = rotation;
-        // behaviour 
+        // behaviour - use behavior to enable/disable particular script component in the gameobject
         // https://stackoverflow.com/questions/51736534/component-does-not-contain-a-definition-for-enabled-and-no-extension-method
         Behaviour bhw = (Behaviour) newObj.GetComponent("XRSimpleInteractable");
         bhw.enabled = simple;

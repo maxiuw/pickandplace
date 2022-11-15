@@ -12,10 +12,6 @@ public class MoveRestrictor : MonoBehaviour
     public bool forcebounds = true;
 
     // Start is called before the first frame update
-    void Start() {
-        // set kinematic as true
-        // GetComponent<Rigidbody>().isKinematic = true;
-    }
     // Update is called once per frame
     void Update()
     {
