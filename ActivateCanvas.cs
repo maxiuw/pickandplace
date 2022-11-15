@@ -16,6 +16,8 @@ public class ActivateCanvas : MonoBehaviour
     public Button ButtonBottle;
     public Button ButtonBanana;    
     public Button ButtonOrange;    
+    public GameObject buttonX;
+    public GameObject buttonY;
 
     // string canvas_name = "UICanvasPlaceObject";
     int lastobj_id = 0;
@@ -35,17 +37,27 @@ public class ActivateCanvas : MonoBehaviour
     {
         // activating the canvas on the click of the vr controller
         // objects have to be added in unity, unactive ojbects cannot be found 
+        // make a button jump 
+        // buttonY.transform.position = new Vector3(buttonY.transform.position.x, buttonY.transform.position.y + 0.01f, buttonY.transform.position.z);
+        try {
+            buttonY.GetComponentInChildren<ParticleSystem>().Play();
+        } catch {}
         if (objectCreationCanvas.active == false) {
             objectCreationCanvas.SetActive(true);
         } else {
             Deactivate(objectCreationCanvas.name);
         }
+        // buttonY.transform.position = new Vector3(buttonY.transform.position.x, buttonY.transform.position.y - 0.01f, buttonY.transform.position.z);
+
     }
 
     public void ActivateRobotCanvas()
     {
         // activating the canvas on the click of the vr controller
-        // objects have to be added in unity, unactive ojbects cannot be found 
+        // objects have to be added in unity, unactive ojbects cannot be found
+        try {
+            buttonX.GetComponentInChildren<ParticleSystem>().Play(); 
+        } catch {}
         if (objectRobotUICanvas.active == false) {
             objectRobotUICanvas.SetActive(true);
         } else {
