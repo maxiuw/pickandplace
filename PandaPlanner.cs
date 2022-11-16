@@ -79,8 +79,11 @@ namespace PandaRobot
         public List<Vector3> vectors_for_lines;
         [HideInInspector]
         public int colorindex = 0;
-        public List<PoseMsg> robot_poses;
-        
+        public List<PoseMsg> robot_poses; // prepick up
+        public List<PoseMsg> robot_postpick_pose; //
+        public PoseMsg lastpickup_pose;
+        public PoseMsg lastplace_pose;
+
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
@@ -93,6 +96,7 @@ namespace PandaRobot
             // initiate all the variables and find the robot on start 
             messagestoshow = new Stack<string>();
             robot_poses = new List<PoseMsg>();
+            robot_postpick_pose = new List<PoseMsg>();
             // Get ROS connection static instance
             m_Ros = ROSConnection.GetOrCreateInstance();
             // with and without picking responses 
@@ -180,19 +184,17 @@ namespace PandaRobot
         /// </summary>
         public void Publish_many()
         {
+            // used to publish the movement along the waypoints
             colorindex = -1;
             if (robot_poses.Count > 0) {
-                var request = new PandaManyPosesRequest(); // this is where you edited a lot of shit
+                // all the necceaasy information for the request 
+                var request = new PandaManyPosesRequest(); 
+                // last pick and place poses plus the array of waypoitns 
                 request.current_joints = CurrentJointConfig().joints;
-
-                Vector3 newObjTransformation = homePose;
-                // PoseMsg[] poses_to_sent = new PoseMsg[robot_poses.Count];
-                // Quaternion newObjRotation = Quaternion.Euler(0, 0, 0).To<FLU>();
-                // for (int i = 0; i < robot_poses.Count; i++) {
-                //     poses_to_sent[i] = 
-                // }
-                
-                request.poses = robot_poses.ToArray();
+                request.pre_pick_poses = robot_poses.ToArray();
+                request.pick_pose = lastpickup_pose;
+                request.post_pick_poses = robot_postpick_pose.ToArray();
+                request.place_pose = lastplace_pose;
                 Debug.Log("I send the service msg");
                 m_Ros.SendServiceMessage<PandaManyPosesResponse>(waypoints_service, request, PandaTrajectoryResponse);
                 robot_poses = new List<PoseMsg>(); // remove all the poses after request was sent 
@@ -278,6 +280,9 @@ namespace PandaRobot
                 position = (placepose).To<FLU>(),
                 orientation = hand_orientation.To<FLU>()
             };
+            // save last pick up and place poses
+            lastpickup_pose = request.pick_pose;
+            lastplace_pose = request.place_pose;
             Debug.Log($"position place {placepose}");
             m_Ros.SendServiceMessage<PandaPickUpResponse>(m_RosServiceName, request, PandaTrajectoryResponse);
         }

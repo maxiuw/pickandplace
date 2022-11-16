@@ -75,6 +75,7 @@ public class SimpleFK : MonoBehaviour
             framecount_lineupdate = 0;
             updateLine();
         }
+        // int id = waypointObject.GetComponent<WaypointID>().id;
     }
 
     public static GameObject FindRobotObject()
@@ -111,14 +112,16 @@ public class SimpleFK : MonoBehaviour
         prevPoint += new Vector3(0, -0.05f, 0); 
         // add way point of the movement dict 
         try {
-            posedict[planner.colorindex].Add(prevPoint);
+            posedict[planner.colorindex + 1].Add(prevPoint);
         } 
         catch {
-            posedict[planner.colorindex] = new List<Vector3>();
-            posedict[planner.colorindex].Add(prevPoint);
+            posedict[planner.colorindex + 1] = new List<Vector3>();
+            posedict[planner.colorindex + 1].Add(prevPoint);
         }
         // create a waypoint and disable collider 
         GameObject pt = Instantiate(waypointObject, prevPoint, Quaternion.Euler(0, 90, 0));
+        // index of the waypoint corresponding to the phrase of the movment 
+        pt.GetComponent<WaypointID>().id = planner.colorindex + 1;
         pt.GetComponent<SphereCollider>().enabled = false;
         waypoints.Add(pt);
         // here we add the poses of the waypoints to the planner 
@@ -132,29 +135,36 @@ public class SimpleFK : MonoBehaviour
         // at each pose (pose[key]) we generate n waypoint (depending on how long is the move), k waypoints per frame
         // iteration over poses and over the waypoints which are then saved there 
         int k = 0;
-        int numofpt = 0;
         foreach (int key in posedict.Keys) {
             foreach (Vector3 vect in posedict[key]) { 
                 Debug.Log($"{waypoints.Count}, {posedict.Keys.Count}, {posedict[key].Count}, {key}");
                 // make sure we will go to pre pickup, pick up and the last pose 
-                Debug.Log($"last {posedict.Keys.Last()}");
-                if (k == waypoints.Count - 1 | k == (posedict[0].Count + posedict[1].Count) | k == posedict[0].Count | waypoints[k].transform.position != vect) {
+                // if (k == waypoints.Count - 1 | k == (posedict[0].Count + posedict[1].Count) | k == posedict[0].Count | waypoints[k].transform.position != vect) {
+                if (waypoints[k].transform.position != vect & (key != 2 | key != 3 | key != 4)) {
+
                     Debug.Log($"added {k}th waypoint");
                     Vector3 position = waypoints[k].transform.position;
                     position.y -= planner.panda_y_offset; // offset neccessary for the ROS planner 
-                    if (key == 1)
-                        position.y -= 0.02f;
-                    // here we are adding waypoints to the path 
-                    planner.robot_poses.Add(new PoseMsg
-                    {
-                    position = position.To<FLU>(), // SPHERE position 
-                    orientation = Quaternion.Euler(180, 0, 0).To<FLU>() // home rotation
-                    // orientation = rotation.To<FLU>() // SPHERE rotation
-                    });
-                    numofpt++;
-                    Destroy(waypoints[k]);
-                    k++;
-                    continue;
+                    // pre and post pick up poses 
+                    if (key == 1) {
+                        // position.y -= 0.02f;
+                        // here we are adding waypoints to the path 
+                        planner.robot_poses.Add(new PoseMsg {
+                            position = position.To<FLU>(), // SPHERE position 
+                            orientation = Quaternion.Euler(180, 0, 0).To<FLU>() // home rotation
+                            // orientation = rotation.To<FLU>() // SPHERE rotation
+                        });
+                    } else if (key == 5) {
+                        planner.robot_postpick_pose.Add(new PoseMsg {
+                            position = position.To<FLU>(), // SPHERE position 
+                            orientation = Quaternion.Euler(180, 0, 0).To<FLU>() // home rotation
+                            // orientation = rotation.To<FLU>() // SPHERE rotation
+                        });
+                    }
+                        
+                    // Destroy(waypoints[k]);
+                    // k++;
+                    // continue;
                 }
                 Destroy(waypoints[k]);
                 k++;
@@ -162,30 +172,13 @@ public class SimpleFK : MonoBehaviour
         }
         // reset_robot_pose back to the orgin (real robot state)
         planner.MoveToRealRobotPose();
-        Debug.Log($"i sent {numofpt} waypoints");
+        Debug.Log($"i sent {k} waypoints");
         waypoints = new List<GameObject>();
         leave_old_line(); // create a copy of a line so that we can see how the trajectory chagned 
         Line.positionCount = 0; // remove all the line verices 
         
     }
-        // // send waypoints to the puhlisher 
-        // for (int wpnt = 0; wpnt < waypoints.Count; wpnt++) {
-        //     // to ensure smoothness of the traj (too many points, too laggy) only include points that changed the position
-        //     if (wpnt == 0 | wpnt == waypoints.Count-1 | waypoints[wpnt].transform.position != GetNext(wpnt)) {
-        //         planner.robot_poses.Add(new PoseMsg
-        //         {
-        //             position = waypoints[wpnt].transform.position.To<FLU>(), // SPHERE position 
-        //             orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
-        //             // orientation = rotation.To<FLU>() // SPHERE rotation
-        //         });
-        //     }
-           
-        //     // destroy old waypoits
-        //     Destroy(waypoints[wpnt]);
-        // }
-        // waypoints = new List<GameObject>();
-        // Line.positionCount = 0; // remove all the line verices 
-  
+    
     public void updateLine() {
         // update the lines (since we are moving the waypoints aroind)
         for (int i = 0; i < waypoints.Count; i ++)
