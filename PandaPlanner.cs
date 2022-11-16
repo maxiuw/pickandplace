@@ -102,7 +102,6 @@ namespace PandaRobot
             // with and without picking responses 
             // initiate services
             m_Ros.RegisterRosService<PandaPickUpRequest, PandaPickUpRequest>(m_RosServiceName);
-            // m_Ros.RegisterRosService<PandaMoverManyPosesRequest, PandaMoverManyPosesResponse>(simplemoves);
             m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
             // initiate subscriber 
@@ -312,29 +311,7 @@ namespace PandaRobot
             }
         }
 
-        void PandaTrajectoryResponse(PandaManyPosesResponse response)
-        {
-            // Debug.Log(response);
-            if (response.trajectories.Length > 0)
-            {
-                trajectoriesForRobot = new List<RobotTrajectoryMsg>();
-                Debug.Log("Trajectory returned.");
-                messagestoshow.Push("Trajectory returned.");
-                Debug.Log(response);
-                // responseforLine = response;
-                StartCoroutine(ExecuteTrajectories(response.trajectories));
-            }
-            else
-            {
-
-                // if cannot find the path - remove the cube from the game a remove the id 
-                messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
-                int id = Reciever.ids[Reciever.ids.Count - 1];
-                Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
-                Debug.LogError("No trajectory returned from MoverService.");
-                Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
-            }
-        }
+        
 
         /// <summary>
         ///     Execute the returned trajectories from the MoverService.
@@ -400,6 +377,93 @@ namespace PandaRobot
             colorindex = -1; // added to stop generating waypoints 
         }
 
+        void PandaTrajectoryResponse(PandaManyPosesResponse response)
+        {
+            // Debug.Log(response);
+            if (response.trajecotry_list.trajectories_pick.Length > 0)
+            {
+                trajectoriesForRobot = new List<RobotTrajectoryMsg>();
+                Debug.Log("Trajectory returned.");
+                messagestoshow.Push("Trajectory returned.");
+                Debug.Log(response);
+                // responseforLine = response;
+                StartCoroutine(RunAllTrajectories(response));
+               
+            }
+            else
+            {
+
+                // if cannot find the path - remove the cube from the game a remove the id 
+                messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
+                int id = Reciever.ids[Reciever.ids.Count - 1];
+                Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
+                Debug.LogError("No trajectory returned from MoverService.");
+                Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
+            }
+        }
+        IEnumerator RunAllTrajectories(PandaManyPosesResponse response) {
+            // neccessary, otherwise breakes
+            OpenGripper();
+            if (response.trajecotry_list.trajectories_prepick.Length > 0)
+                yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_prepick));
+            yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_pick));
+            CloseGripper();
+            // if (response.trajecotry_list.trajectories_prepick.Length > 0)
+            yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_postpick));
+            OpenGripper();
+        }
+
+        IEnumerator ExecuteTrajectoriesWaypoints(RobotTrajectoryMsg[] response)
+        {
+            colorindex = 0;
+            Int16Msg msg = new Int16Msg();
+            msg.data =  (short) response.Length;
+            m_Ros.Publish(pub_number_of_poses, msg);
+            Debug.Log($"I will got to {response.Length} poses");
+            if (response != null)
+            {
+                // int j = 0;          
+                // For every trajectory plan returned
+                for (var poseIndex = 0; poseIndex < response.Length; poseIndex++)
+                {
+                    // adding the trajectories so they can be later on pulished for the robot 
+                    trajectoriesForRobot.Add(response[poseIndex]);
+                    // colorindex = 0;
+                    // For every robot pose in trajectory plan
+                    foreach (var t in response[poseIndex].joint_trajectory.points)
+                    {
+                        var jointPositions = t.positions;
+
+                        float[] result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+
+                        // Set the joint values for every joint
+                        string printing = "";
+                        for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
+                        {
+                            printing += result[joint].ToString() + " next ";
+                            // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+                            var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+                            joint1XDrive.target = result[joint];
+                            m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+                        }
+                        // Wait for robot to achieve pose for all joint assignments
+                        yield return new WaitForSeconds(k_JointAssignmentWait);
+                    }
+                    // yield return new WaitForSeconds(k_JointAssignmentWait);
+                    // if ((response.Length == 5 & colorindex == 1) | ((response.Length > 5 & colorindex == 2)))
+                    if (colorindex == 1)
+                    {
+                        CloseGripper();
+                        // yield return new WaitForSeconds(k_PoseAssignmentWait);
+                    }
+                    colorindex++;
+                    yield return new WaitForSeconds(k_PoseAssignmentWait);
+                }
+                // All trajectories have been executed, open the gripper to place the target cube
+                OpenGripper();
+            }
+            colorindex = -1; // added to stop generating waypoints 
+        }
         void ExecuteTrajectoriesJointState(FloatListMsg response)
         {
             // For every trajectory plan returned
