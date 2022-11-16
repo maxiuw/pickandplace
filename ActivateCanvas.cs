@@ -40,7 +40,7 @@ public class ActivateCanvas : MonoBehaviour
         // make a button jump 
         // buttonY.transform.position = new Vector3(buttonY.transform.position.x, buttonY.transform.position.y + 0.01f, buttonY.transform.position.z);
         try {
-            buttonY.GetComponentInChildren<ParticleSystem>().Play();
+            buttonX.GetComponentInChildren<ParticleSystem>().Play();
         } catch {}
         if (objectCreationCanvas.active == false) {
             objectCreationCanvas.SetActive(true);
@@ -56,7 +56,7 @@ public class ActivateCanvas : MonoBehaviour
         // activating the canvas on the click of the vr controller
         // objects have to be added in unity, unactive ojbects cannot be found
         try {
-            buttonX.GetComponentInChildren<ParticleSystem>().Play(); 
+            buttonY.GetComponentInChildren<ParticleSystem>().Play(); 
         } catch {}
         if (objectRobotUICanvas.active == false) {
             objectRobotUICanvas.SetActive(true);

@@ -16,6 +16,7 @@ public class CamScript : MonoBehaviour
     // WebCamTexture tex; 
     Texture2D texRos;
     public RawImage display;
+    public RawImage table_display;
     ROSConnection m_Ros;
     CompressedImageMsg img_msg;
     string[] camtopics = {"/myresult", "/myresult_rs"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
@@ -64,6 +65,7 @@ public class CamScript : MonoBehaviour
                 texRos.LoadRawTextureData(imgmessages.Pop()); //
                 texRos.Apply();
                 display.texture = texRos; 
+                table_display.texture = texRos;
                 imgmessages = new Stack<byte[]>();
             } catch {
                 // do nothing
