@@ -63,8 +63,7 @@ public class CamScript : MonoBehaviour
     void Start_Overlap_Image_Click() {
         passthrough = !passthrough;
         table_display.enabled = passthrough;
-    }
-    
+    }    
     
     public void SwapCam_Clicked() {
         // switching between two cameras, works for 2 
@@ -87,20 +86,19 @@ public class CamScript : MonoBehaviour
         // texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24
         // }
     }
+
     public void ComeBack() {
         XROrgin.transform.position = new Vector3(0.065f, 0.668f, 0.784f);
     }
+
     public void movetoImage() {
         XROrgin.transform.position = new Vector3(-13.5f, 25, 66);
     }
     
     public void StartStopCam_Clicked(ImageMsg img) {
         // Debug.Log("go message");
-        // stopping the prev output and clearing the texture
         // Debug.Log($"message {frame} recieved {img.data.Length} stack {imgmessages.Count} size {img.height}");
         imgmessages.Push(img.data);
-        // last_imgmessages = camtopics[currenttopic];
-
         frame++;
         // // BgrToRgb(img.data); // done in the video_stream.cpp file 
         // texRos.LoadRawTextureData(img.data); //

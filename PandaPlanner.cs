@@ -23,15 +23,27 @@ namespace PandaRobot
         int k_NumRobotJoints = SourceDestinationPublisher.LinkNames.Length; // has to be adj in the SDP file for diff robots 
         const float k_JointAssignmentWait = 0.08f;
         const float k_PoseAssignmentWait = 0.05f;
-
+        // -------------------------------------------
         // Variables required for ROS communication
+        // -------------------------------------------
         [SerializeField]
         string m_RosServiceName = "panda_move";
         public string RosServiceName { get => m_RosServiceName; set => m_RosServiceName = value; }
         string m_simplemoves = "moveit_many";
         string waypoints_service = "waypoints_service";
         public string simplemoves { get => m_simplemoves; set => m_simplemoves = value; }
+        public string real_robot_state_topic = "/joint_state_unity";
+        string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
+        Quaternion newObjRotation;
+        string realrobot_move_topic = "realrobot_publisher"; 
+        string pub_number_of_poses = "total_poses_n";
+        string reset_n_poses = "reset_n_poses";
 
+        // ROS Connector
+        ROSConnection m_Ros;
+        // -------------------------------------------
+        // Robot stuff
+        // -------------------------------------------
         [SerializeField]
         GameObject m_Panda;
         public GameObject Panda { get => m_Panda; set => m_Panda = value; }
@@ -50,9 +62,9 @@ namespace PandaRobot
         ArticulationBody m_LeftGripper;
         ArticulationBody m_RightGripper;
 
-        // ROS Connector
-        ROSConnection m_Ros;
-
+        // -------------------------------------------
+        // other Unity in the scene connected with PandaPlanner 
+        // -------------------------------------------
         /// added by maciej
         public FloatListMsg real_robot_position;
         // public ObjReciever Reciever;
@@ -68,12 +80,7 @@ namespace PandaRobot
         [HideInInspector]
         public int colorindex = 0;
         public List<PoseMsg> robot_poses;
-        public string real_robot_state_topic = "/joint_state_unity";
-        string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
-        Quaternion newObjRotation;
-        string realrobot_move_topic = "realrobot_publisher"; 
-        string resetService_name = "reset_service";
-        string pub_number_of_poses = "total_poses_n";
+        
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
@@ -98,6 +105,8 @@ namespace PandaRobot
             m_Ros.Subscribe<FloatListMsg>(real_robot_state_topic, ExecuteTrajectoriesJointState);
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
             m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
+            m_Ros.RegisterPublisher<Int16Msg>(reset_n_poses);
+
             // get robot's joints 
             m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
             // rotation of the object that was detected, "global" to "hack" :) 
@@ -472,22 +481,15 @@ namespace PandaRobot
             // proposed traj should be stored in the variable RobotTrajMsg
             // after trajectory are discussed and accepted, this function should publish them to the topic
             // moveit_unity_node exectues them on the real world robot 
+            // reset_n_poses to start with 
+            Int16Msg pose_n = new Int16Msg();
+            pose_n.data =  (short) 0;
+            m_Ros.Publish(reset_n_poses, pose_n);
             foreach (RobotTrajectoryMsg msg in trajectoriesForRobot) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, msg);
             }  
         }
-
-        // service to respond
-        // public void ResetService() {
-        //     m_Ros.
-
-        //     PandaResetRequest request = new PandaResetRequest();
-        //     m_Ros.SendServiceMessage<PandaResetResponse>(resetService_name, request, ResetServiceResp);
-        // }
-        // public void ResetServiceResp(PandaResetResponse resp) {
-        //     Debug.Log("pose was reseted");
-        // }
 
 
         enum Poses
