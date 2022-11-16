@@ -53,8 +53,9 @@ public class ObjectRecieverRos : MonoBehaviour {
         label_mapping[43] = 4; // org knife, cube 
         label_mapping[46] = 0; // org bammaa 
         label_mapping[47] = 2; // org appleselected
-        label_mapping[75] = 0; // org vase, bananna
+        label_mapping[75] = 2; // org vase, bananna
         label_mapping[79] = 4; // org knife, cube 
+        label_mapping[49] = 5; // orange
         m_Ros.Subscribe<StringMsg>("/predictedObjects", DoStuff);
         positions = new Stack<Vector3>();
         rotations = new Stack<Quaternion>();
@@ -144,6 +145,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         float x_world = 0.01f * (x_cam * 0.264f * camera_height) / camera_focal_length_logi_x;
         float y_world = 0.01f * (y_cam * 0.264f * camera_height) / camera_focal_length_logi_y;
         y_world += 0.35f; // camera traslation 
+        x_world += 0.03f;
         // if (objclass == 0)
         //     y_world -= 0.1f; // for banana since its not centered on 0,0 itself 
         // Debug.Log($"camera props {cam.pixelHeight}, {cam.pixelWidth}");
@@ -159,7 +161,10 @@ public class ObjectRecieverRos : MonoBehaviour {
         // positions.Push(prefab.transform.position);
         // rotations.Push(prefab.transform.rotation);
         prefab.SetActive(true);
-        prefab.name = $"cube{id}";
+        // var newString = Your_String(4, '0');
+        System.Random rnd = new System.Random();
+        string name = rnd.Next(1, 99).ToString().PadLeft(2,'0');
+        prefab.name = $"cube{name}";
         
         GameObject newObj = Instantiate(prefab);
         newObj.transform.position = position;

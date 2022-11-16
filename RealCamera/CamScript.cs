@@ -16,9 +16,10 @@ public class CamScript : MonoBehaviour
     // WebCamTexture tex; 
     Texture2D texRos;
     public RawImage display;
+    public RawImage table_display;
     ROSConnection m_Ros;
     CompressedImageMsg img_msg;
-    string[] camtopics = {"/myresult", "/camera/color/image_raw"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
+    string[] camtopics = {"/myresult", "/myresult_rs"}; // "/camera_top/image_raw" "/camera_arm/image_raw",
     int currenttopic = 0;
     int width = 640; // 256 since we resized the image 
     // string topcamera = "/camera_top/image_raw";
@@ -28,27 +29,15 @@ public class CamScript : MonoBehaviour
     Stack<byte[]> imgmessages;
     byte[] last_imgmessages;
     public GameObject XROrgin;
+    public bool passthrough = false;
     void Start() {
-        // start the ROS connection
-        // if (currenttopic == 0) {
-        //     width = 640;
-        //     height = 256;
-        // } else {
-        //     width = 800;
-        //     height = 448;
-        // }
-        // width = 640;
-        // height = 256;
+        // init all necessary stuff
         m_Ros = ROSConnection.GetOrCreateInstance();
-        // register topic name 
-        // m_Ros.RegisterPublisher<RosMessageTypes.Sensor.ImageMsg>(topicName);
-        // Debug.Log(m_Ros.RosIPAddress);
         texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24   
-        // m_Ros.Subscribe<ImageMsg>(camtopics[0], StartStopCam_Clicked);
-        // m_Ros.Subscribe<ImageMsg>(camtopics[1], StartStopCam_Clicked);
+        // queue for images since subscriber does not support that 
         imgmessages = new Stack<byte[]>();
-        // last_imgmessages = 
-    
+        // passthrough disabled at the start 
+        table_display.enabled = false;    
     }
 
     public void StartSub() {
@@ -63,13 +52,18 @@ public class CamScript : MonoBehaviour
                 texRos.LoadRawTextureData(imgmessages.Pop()); //
                 texRos.Apply();
                 display.texture = texRos; 
+                table_display.texture = texRos;
                 imgmessages = new Stack<byte[]>();
             } catch {
                 // do nothing
             }       
         }
     }
-    
+
+    void Start_Overlap_Image_Click() {
+        passthrough = !passthrough;
+        table_display.enabled = passthrough;
+    }    
     
     public void SwapCam_Clicked() {
         // switching between two cameras, works for 2 
@@ -92,20 +86,19 @@ public class CamScript : MonoBehaviour
         // texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24
         // }
     }
+
     public void ComeBack() {
         XROrgin.transform.position = new Vector3(0.065f, 0.668f, 0.784f);
     }
+
     public void movetoImage() {
         XROrgin.transform.position = new Vector3(-13.5f, 25, 66);
     }
     
     public void StartStopCam_Clicked(ImageMsg img) {
         // Debug.Log("go message");
-        // stopping the prev output and clearing the texture
         // Debug.Log($"message {frame} recieved {img.data.Length} stack {imgmessages.Count} size {img.height}");
         imgmessages.Push(img.data);
-        // last_imgmessages = camtopics[currenttopic];
-
         frame++;
         // // BgrToRgb(img.data); // done in the video_stream.cpp file 
         // texRos.LoadRawTextureData(img.data); //

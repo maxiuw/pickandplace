@@ -23,15 +23,27 @@ namespace PandaRobot
         int k_NumRobotJoints = SourceDestinationPublisher.LinkNames.Length; // has to be adj in the SDP file for diff robots 
         const float k_JointAssignmentWait = 0.08f;
         const float k_PoseAssignmentWait = 0.05f;
-
+        // -------------------------------------------
         // Variables required for ROS communication
+        // -------------------------------------------
         [SerializeField]
         string m_RosServiceName = "panda_move";
         public string RosServiceName { get => m_RosServiceName; set => m_RosServiceName = value; }
         string m_simplemoves = "moveit_many";
         string waypoints_service = "waypoints_service";
         public string simplemoves { get => m_simplemoves; set => m_simplemoves = value; }
+        public string real_robot_state_topic = "/joint_state_unity";
+        string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
+        Quaternion newObjRotation;
+        string realrobot_move_topic = "realrobot_publisher"; 
+        string pub_number_of_poses = "total_poses_n";
+        string reset_n_poses = "reset_n_poses";
 
+        // ROS Connector
+        ROSConnection m_Ros;
+        // -------------------------------------------
+        // Robot stuff
+        // -------------------------------------------
         [SerializeField]
         GameObject m_Panda;
         public GameObject Panda { get => m_Panda; set => m_Panda = value; }
@@ -50,9 +62,9 @@ namespace PandaRobot
         ArticulationBody m_LeftGripper;
         ArticulationBody m_RightGripper;
 
-        // ROS Connector
-        ROSConnection m_Ros;
-
+        // -------------------------------------------
+        // other Unity in the scene connected with PandaPlanner 
+        // -------------------------------------------
         /// added by maciej
         public FloatListMsg real_robot_position;
         // public ObjReciever Reciever;
@@ -68,11 +80,7 @@ namespace PandaRobot
         [HideInInspector]
         public int colorindex = 0;
         public List<PoseMsg> robot_poses;
-        public string subscriber_topicname = "/joint_state_unity";
-        string movit_results = "/move_group/fake_controller_joint_states"; //"/move_group/result"; 
-        Quaternion newObjRotation;
-        string realrobot_move_topic = "realrobot_publisher"; 
-        string pub_number_of_poses = "total_poses_n";
+        
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
@@ -94,12 +102,11 @@ namespace PandaRobot
             m_Ros.RegisterRosService<PandaSimpleServiceRequest, PandaSimpleServiceResponse>(m_simplemoves);
             m_Ros.RegisterRosService<PandaManyPosesRequest, PandaManyPosesResponse>(waypoints_service);
             // initiate subscriber 
-            m_Ros.Subscribe<FloatListMsg>(subscriber_topicname, ExecuteTrajectoriesJointState);
+            m_Ros.Subscribe<FloatListMsg>(real_robot_state_topic, ExecuteTrajectoriesJointState);
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
             m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
+            m_Ros.RegisterPublisher<Int16Msg>(reset_n_poses);
 
-            // m_Ros.Subscribe<MoveGroupActionResult>(movit_results, ExectuteMoverResults);
-            // m_Ros.Subscribe<JointStateMsg>(movit_results, ExectuteMoverResults); 
             // get robot's joints 
             m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
             // rotation of the object that was detected, "global" to "hack" :) 
@@ -250,7 +257,7 @@ namespace PandaRobot
             request.current_joints = joints;
             Vector3 newObjTransformation = Reciever.positions.Peek();
             newObjRotation = Reciever.rotations.Peek();
-            Quaternion hand_orientation = Quaternion.Euler(180, newObjRotation.eulerAngles.y, 0); // roty = newObjRotation.eulerAngles.y
+            Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
             // newObjTransformation.y = 0.4f;
             // newObjTransformation.y = 0.2f;
             // Debug.Log($"offset {m_PickPoseOffset}");
@@ -391,33 +398,39 @@ namespace PandaRobot
         void ExecuteTrajectoriesJointState(FloatListMsg response)
         {
             // For every trajectory plan returned
-            Debug.Log("I got joint states");
-            Debug.Log(response.joints.ToArray());
-            // Debug.Log(response.ToString);
-            Debug.Log("end of message");
-            // RunTrajectories(FloatListMsg response)
-            real_robot_position = response;
-            StartCoroutine(RunTrajectories(response));
-
-        }
-        IEnumerator RunTrajectories(FloatListMsg response)
-        {
-            Debug.Log("I executed runtraj");
-            Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
-            float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-            // double[] response_array = response.joints.ToArray();
-            string printing = "";
-            // response.data[1]
-            for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
-            {
-                // Debug.Log($"joint {joint} position {response_array[joint]}");
-                printing += response_array[joint].ToString() + " next ";
-                // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
-                var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
-                joint1XDrive.target = response_array[joint];
-                m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+            if (this.real_robot_position is null) {
+                Debug.Log("I got joint states");
+                Debug.Log(response.joints.ToArray());
+                // Debug.Log(response.ToString);
+                Debug.Log("end of message");
             }
-            yield return new WaitForSeconds(k_JointAssignmentWait);
+            // save the real robot pose to the buffer
+            this.real_robot_position = response;
+        }
+
+        public void MoveToRealRobotPose()
+        {
+            try {
+                FloatListMsg response = real_robot_position;
+                // Debug.Log(response);
+                // Debug.Log("I executed runtraj");
+                // Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
+                float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+                string printing = "";
+                // response.data[1]
+                for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
+                {
+                    // Debug.Log($"joint {joint} position {response_array[joint]}");
+                    printing += response_array[joint].ToString() + " next ";
+                    // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+                    var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+                    joint1XDrive.target = response_array[joint];
+                    m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+                }
+            } catch {
+                Debug.Log("Wait a couple of seconds, I have not recieved any poses yet.");
+            }
+            
 
         }
         /// <summary>
@@ -468,6 +481,10 @@ namespace PandaRobot
             // proposed traj should be stored in the variable RobotTrajMsg
             // after trajectory are discussed and accepted, this function should publish them to the topic
             // moveit_unity_node exectues them on the real world robot 
+            // reset_n_poses to start with 
+            Int16Msg pose_n = new Int16Msg();
+            pose_n.data =  (short) 0;
+            m_Ros.Publish(reset_n_poses, pose_n);
             foreach (RobotTrajectoryMsg msg in trajectoriesForRobot) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, msg);
@@ -484,40 +501,3 @@ namespace PandaRobot
         }
     }
 }
-
-// void ExectuteMoverResults(MoveGroupActionResult result) {
-//     // more details and message structure in the message file
-//     // getting initial joints state (start) and the joint_trajectory points
-//     float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-//     RobotTrajectoryMsg[] joint_states = new RobotTrajectoryMsg[1];
-//     joint_states[0] = result.result.planned_trajectory;
-//     StartCoroutine(ExecuteTrajectories(joint_states));
-//     // if (result.result.Length > 0)
-//     // {
-//     //     Debug.Log("Trajectory returned.");
-//     //     messagestoshow.Push("Trajectory returned.");
-//     //     // responseforLine = result;
-//     //     StartCoroutine(ExecuteTrajectories(result));
-//     // }
-// }
-
-// send me home copy 
-
-// public void SendMeHome()
-//     {   
-//         var request = new PandaMoverManyPosesRequest(); 
-//         request.joints_input = CurrentJointConfig();
-
-//         Vector3 newObjTransformation = homePose;
-//         PoseMsg[] poses_to_sent = new PoseMsg[1];
-//         // Quaternion newObjRotation = Quaternion.Euler(0, 0, 0).To<FLU>();
-//         poses_to_sent[0] = new PoseMsg
-//         {
-
-//             position = (newObjTransformation).To<FLU>(), // home position 
-//             orientation = Quaternion.Euler(90, 0, 0).To<FLU>() // home rotation
-//         };
-//         request.poses = poses_to_sent;
-//         Debug.Log($"I requested {newObjTransformation} {poses_to_sent.Length}");
-//         m_Ros.SendServiceMessage<PandaMoverServiceResponse>(simplemoves, request, PandaTrajectoryResponse);
-//     }
