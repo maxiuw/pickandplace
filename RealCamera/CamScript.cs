@@ -29,28 +29,15 @@ public class CamScript : MonoBehaviour
     Stack<byte[]> imgmessages;
     byte[] last_imgmessages;
     public GameObject XROrgin;
+    public bool passthrough = false;
     void Start() {
-        // start the ROS connection
-        // if (currenttopic == 0) {
-        //     width = 640;
-        //     height = 256;
-        // } else {
-        //     width = 800;
-        //     height = 448;
-        // }
-        // width = 640;
-        // height = 256;
+        // init all necessary stuff
         m_Ros = ROSConnection.GetOrCreateInstance();
-        // register topic name 
-        // m_Ros.RegisterPublisher<RosMessageTypes.Sensor.ImageMsg>(topicName);
-        // Debug.Log(m_Ros.RosIPAddress); 
-        
         texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24   
-        // m_Ros.Subscribe<ImageMsg>(camtopics[0], StartStopCam_Clicked);
-        // m_Ros.Subscribe<ImageMsg>(camtopics[1], StartStopCam_Clicked);
+        // queue for images since subscriber does not support that 
         imgmessages = new Stack<byte[]>();
-        // last_imgmessages = 
-    
+        // passthrough disabled at the start 
+        table_display.enabled = false;    
     }
 
     public void StartSub() {
@@ -71,6 +58,11 @@ public class CamScript : MonoBehaviour
                 // do nothing
             }       
         }
+    }
+
+    void Start_Overlap_Image_Click() {
+        passthrough = !passthrough;
+        table_display.enabled = passthrough;
     }
     
     
