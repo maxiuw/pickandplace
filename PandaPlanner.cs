@@ -88,10 +88,7 @@ namespace PandaRobot
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
-        /// <summary>
-        ///     Find all robot joints in Awake() and add them to the jointArticulationBodies array.
-        ///     Find left and right finger joints and assign them to their respective articulation body objects.
-        /// </summary>
+
         void Start()
         {
             // initiate all the variables and find the robot on start 
@@ -123,11 +120,8 @@ namespace PandaRobot
             {
                 linkName += SourceDestinationPublisher.LinkNames[i];
                 m_JointArticulationBodies[i] = Panda.transform.Find(linkName).GetComponent<ArticulationBody>();
-                // Debug.Log($"{i}, {linkName}");
             }
             // Find left and right fingers
-            // var rightGripper = linkName + "/tool_link/gripper_base/servo_head/control_rod_right/right_gripper"; // for niryo
-            // var leftGripper = linkName + "/tool_link/gripper_base/servo_head/control_rod_left/left_gripper";
             var rightGripper = linkName + "/panda_link8/panda_hand/panda_rightfinger"; // for panda 
             var leftGripper = linkName + "/panda_link8/panda_hand/panda_leftfinger";
             m_RightGripper = Panda.transform.Find(rightGripper).GetComponent<ArticulationBody>();
@@ -249,56 +243,10 @@ namespace PandaRobot
             StartCoroutine(ExecuteTrajectories(traj.trajectories));
         }
 
-        // sending robot to the predefined home pose 
-        // public void PublishJoints()
-        // {
-
-        //     // dealing with target placement 
-        //     // m_Target.transform.position = new Vector3(m_Target.transform.position.x, 0.63f, m_Target.transform.position.z);
-        //     m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
-        //     m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
-        //     var request = new PandaPickUpRequest();
-        //     // getting current joint state
-        //     double[] joints = new double[k_NumRobotJoints];
-        //     for (var i = 0; i < k_NumRobotJoints; i++)
-        //     {
-        //         joints[i] = m_JointArticulationBodies[i].jointPosition[0];
-        //     }
-        //     request.current_joints = joints;
-        //     Vector3 newObjTransformation = Reciever.positions.Peek();
-        //     newObjRotation = Reciever.rotations.Peek();
-        //     Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
-        //     // newObjTransformation.y = 0.4f;
-        //     // newObjTransformation.y = 0.2f;
-        //     // Debug.Log($"offset {m_PickPoseOffset}");
-        //     request.pick_pose = new PoseMsg
-        //     {
-        //         position = (newObjTransformation).To<FLU>(), // m_Target.transform.position
-        //                                                      // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
-        //         orientation = hand_orientation.To<FLU>() //m_Target.transform
-        //     };
-        //     // for console canvas 
-        //     // messagestoshow.Push($"position {newObjTransformation} ort {newObjRotation.eulerAngles.y}");
-        //     Debug.Log($"position {request.pick_pose.position} ort {request.pick_pose.orientation}");
-        //     // Place Pose
-        //     Vector3 placepose = m_TargetPlacement.transform.position;
-        //     placepose.y = 0.7f;
-        //     request.place_pose = new PoseMsg
-        //     {
-        //         position = (placepose).To<FLU>(),
-        //         orientation = hand_orientation.To<FLU>()
-        //     };
-        //     // save last pick up and place poses
-        //     lastpickup_pose = request.pick_pose;
-        //     lastplace_pose = request.place_pose;
-        //     Debug.Log($"position place {placepose}");
-        //     m_Ros.SendServiceMessage<PandaPickUpResponse>(m_RosServiceName, request, PandaTrajectoryResponse);
-        // }
         public void PublishJoints()
         {
 
             // dealing with target placement 
-            // m_Target.transform.position = new Vector3(m_Target.transform.position.x, 0.63f, m_Target.transform.position.z);
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
             m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
             var request = new PandaManyPosesRequest();
@@ -312,17 +260,14 @@ namespace PandaRobot
             Vector3 newObjTransformation = Reciever.positions.Peek();
             newObjRotation = Reciever.rotations.Peek();
             Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
-            // newObjTransformation.y = 0.4f;
-            // newObjTransformation.y = 0.2f;
-            // Debug.Log($"offset {m_PickPoseOffset}");
+
             request.pick_pose = new PoseMsg
             {
-                position = (newObjTransformation).To<FLU>(), // m_Target.transform.position
-                                                             // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
+                position = (newObjTransformation).To<FLU>(),
+                // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
                 orientation = hand_orientation.To<FLU>() //m_Target.transform
             };
             // for console canvas 
-            // messagestoshow.Push($"position {newObjTransformation} ort {newObjRotation.eulerAngles.y}");
             Debug.Log($"position {request.pick_pose.position} ort {request.pick_pose.orientation}");
             // Place Pose
             Vector3 placepose = m_TargetPlacement.transform.position;
@@ -389,26 +334,21 @@ namespace PandaRobot
             Debug.Log($"I will got to {response.Length} poses");
             if (response != null)
             {
-                // int j = 0;          
                 // For every trajectory plan returned
                 for (var poseIndex = 0; poseIndex < response.Length; poseIndex++)
                 {
                     // adding the trajectories so they can be later on pulished for the robot 
                     trajectoriesForRobot.Add(response[poseIndex]);
-                    // colorindex = 0;
                     // For every robot pose in trajectory plan
                     foreach (var t in response[poseIndex].joint_trajectory.points)
                     {
                         var jointPositions = t.positions;
-
                         float[] result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-
                         // Set the joint values for every joint
                         string printing = "";
                         for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
                         {
                             printing += result[joint].ToString() + " next ";
-                            // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
                             var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
                             joint1XDrive.target = result[joint];
                             m_JointArticulationBodies[joint].xDrive = joint1XDrive;
@@ -486,14 +426,11 @@ namespace PandaRobot
                 {
                     // adding the trajectories so they can be later on pulished for the robot 
                     trajectoriesForRobot.Add(response[poseIndex]);
-                    // colorindex = 0;
                     // For every robot pose in trajectory plan
                     foreach (var t in response[poseIndex].joint_trajectory.points)
                     {
                         var jointPositions = t.positions;
-
                         float[] result = jointPositions.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-
                         // Set the joint values for every joint
                         string printing = "";
                         for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
@@ -530,17 +467,11 @@ namespace PandaRobot
         {
             try {
                 FloatListMsg response = real_robot_position;
-                // Debug.Log(response);
-                // Debug.Log("I executed runtraj");
-                // Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
                 float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
                 string printing = "";
-                // response.data[1]
                 for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
                 {
-                    // Debug.Log($"joint {joint} position {response_array[joint]}");
                     printing += response_array[joint].ToString() + " next ";
-                    // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
                     var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
                     joint1XDrive.target = response_array[joint];
                     m_JointArticulationBodies[joint].xDrive = joint1XDrive;
@@ -560,41 +491,32 @@ namespace PandaRobot
         {
             // more details and message structure in the message file
             // getting initial joints state (start) and the joint_trajectory points
-            // float[] trajectory_start = result.result.trajectory_start.joint_state.position.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-            // RobotTrajectoryMsg[] joint_states = new RobotTrajectoryMsg[1];
-            // joint_states[0] = result.result.planned_trajectory;
             StartCoroutine(RunTrajectories(result.position));
-
-
-            IEnumerator RunTrajectories(double[] response)
+        }
+        IEnumerator RunTrajectories(double[] response)
+        {
+            Debug.Log("I executed runtraj");
+            Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
+            float[] response_array = response.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+            // double[] response_array = response.joints.ToArray();
+            string printing = "";
+            // response.data[1]
+            for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
             {
-                Debug.Log("I executed runtraj");
-                Debug.Log($"JOINTS LENGHT {m_JointArticulationBodies.Length}");
-                float[] response_array = response.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
-                // double[] response_array = response.joints.ToArray();
-                string printing = "";
-                // response.data[1]
-                for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
-                {
-                    Debug.Log($"joint {joint} position {response_array[joint]}");
-                    printing += response_array[joint].ToString() + " next ";
-                    // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
-                    var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
-                    joint1XDrive.target = response_array[joint];
-                    m_JointArticulationBodies[joint].xDrive = joint1XDrive;
-                }
-                yield return new WaitForSeconds(k_JointAssignmentWait);
+                Debug.Log($"joint {joint} position {response_array[joint]}");
+                printing += response_array[joint].ToString() + " next ";
+                // Debug.Log($"my name is {m_JointArticulationBodies[joint].name}");
+                var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+                joint1XDrive.target = response_array[joint];
+                m_JointArticulationBodies[joint].xDrive = joint1XDrive;
             }
-
-            // if (result.result.Length > 0)
-            // {
-            //     Debug.Log("Trajectory returned.");
-            //     messagestoshow.Push("Trajectory returned.");
-            //     // responseforLine = result;
-            //     StartCoroutine(ExecuteTrajectories(result));
-            // }
+            yield return new WaitForSeconds(k_JointAssignmentWait);
         }
         public void MoveRealRobot() {
+            /// <summary>
+            /// Moving real robot, based on the trajectories saved earlier during the exacution inside the unity
+            /// trajecotry saved in trajectoriesForRobot, calling in this way so i can wait for the execution to finish 
+            /// </summary>
             StartCoroutine(SendTrajectoriesToRealRobot());
         }
         IEnumerator SendTrajectoriesToRealRobot() {

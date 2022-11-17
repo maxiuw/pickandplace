@@ -210,19 +210,6 @@ public class SimpleFK : MonoBehaviour
         }
     }
 
-    // public void reset_robot_pose(bool destroy_waypoints = false) {
-    //     // at the beggining, unity robot gets real-robot state. You can reset robot back to that state by running this function
-    //     try {
-    //         m_Ros.Publish(planner.real_robot_state_topic, planner.real_robot_position);
-    //     } catch {
-    //         Debug.Log("something went wrong, maybe you have not got the real robot pose or publisher was not registered?");
-    //     }
-    //     // you can reset the whole scene by destroying the waypoints 
-    //     if (destroy_waypoints) {
-    //         // TODO 
-    //     }
-    // }
-
     public void leave_old_line() { 
         GameObject gObject = new GameObject("OldTrajectory");
         LineRenderer lRend = gObject.AddComponent<LineRenderer>();
