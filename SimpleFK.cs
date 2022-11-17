@@ -29,6 +29,7 @@ public class SimpleFK : MonoBehaviour
     private Dictionary<int,List<Vector3>> posedict; // where initial position of the waypoints is saved
     public Shader shade; 
     ROSConnection m_Ros;
+    public ObjectRecieverRos reciever;
     void Start()
     {
         // craeting ros instance so on activation of the waypoints, also the robot's poses are reset to the real robot's pooses 
@@ -172,10 +173,20 @@ public class SimpleFK : MonoBehaviour
         }
         // reset_robot_pose back to the orgin (real robot state)
         planner.MoveToRealRobotPose();
+        
         Debug.Log($"i sent {k} waypoints");
         waypoints = new List<GameObject>();
         leave_old_line(); // create a copy of a line so that we can see how the trajectory chagned 
         Line.positionCount = 0; // remove all the line verices 
+        // reset the last position of the object 
+        try {
+            GameObject lastobj =  reciever.lastobject;
+            lastobj.transform.position = reciever.positions.Peek();
+            lastobj.transform.rotation = reciever.rotations.Peek();
+        } catch {
+            Debug.Log(reciever.lastobject);
+            Debug.Log("something is fishy");
+        }
         
     }
     

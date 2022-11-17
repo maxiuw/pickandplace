@@ -24,6 +24,7 @@ public class ObjectRecieverRos : MonoBehaviour {
     public Stack<Vector3> positions;
     [HideInInspector]
     public Stack<Quaternion> rotations;
+    public GameObject lastobject;
     [HideInInspector]
     public List<int> ids;
     ROSConnection m_Ros;
