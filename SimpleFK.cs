@@ -61,10 +61,10 @@ public class SimpleFK : MonoBehaviour
     private void Update() {
         framecount_lineupdate++;
         framecount++;
+        // Debug.Log($"{framecount}, {framecount_lineupdate}, {planner.colorindex}");
         // dont create a waypoints when picking up the obj or 
         // when going back to the starting point when redoing the trajectory after waypoints were moves 
-        if (planner.responseforLine.trajectories.Length > 0 & framecount > 25 & 
-                                (planner.colorindex != -1)) { //planner.colorindex != 1 & planner.colorindex != 2
+        if (planner.responseforLine.trajecotry_list.trajectories_pick.Length > 0 & framecount > 20 & (planner.colorindex != -1)) { 
             {
                 Debug.Log(planner.colorindex);
                 ForwardKinematics();
@@ -138,7 +138,7 @@ public class SimpleFK : MonoBehaviour
         int k = 0;
         foreach (int key in posedict.Keys) {
             foreach (Vector3 vect in posedict[key]) { 
-                Debug.Log($"{waypoints.Count}, {posedict.Keys.Count}, {posedict[key].Count}, {key}");
+                // Debug.Log($"{waypoints.Count}, {posedict.Keys.Count}, {posedict[key].Count}, {key}");
                 // make sure we will go to pre pickup, pick up and the last pose 
                 // if (k == waypoints.Count - 1 | k == (posedict[0].Count + posedict[1].Count) | k == posedict[0].Count | waypoints[k].transform.position != vect) {
                 if (waypoints[k].transform.position != vect & (key != 2 | key != 3 | key != 4)) {
@@ -170,10 +170,7 @@ public class SimpleFK : MonoBehaviour
                 Destroy(waypoints[k]);
                 k++;
             }
-        }
-        // reset_robot_pose back to the orgin (real robot state)
-        planner.MoveToRealRobotPose();
-        
+        }      
         Debug.Log($"i sent {k} waypoints");
         waypoints = new List<GameObject>();
         leave_old_line(); // create a copy of a line so that we can see how the trajectory chagned 
@@ -197,6 +194,8 @@ public class SimpleFK : MonoBehaviour
     }  
 
     public void enable_waypoints() {
+        // reset_robot_pose back to the orgin (real robot state)
+        planner.MoveToRealRobotPose();
         foreach (GameObject waypt in waypoints) {
             // for spehere 
             // enable waypoints in the line so that the user can mvoe them around

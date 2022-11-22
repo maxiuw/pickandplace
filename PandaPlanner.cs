@@ -75,7 +75,7 @@ namespace PandaRobot
         [HideInInspector]
         public Stack<string> messagestoshow;
         [HideInInspector]
-        public PandaPickUpResponse responseforLine;
+        public PandaManyPosesResponse responseforLine;
         public List<Vector3> vectors_for_lines;
         [HideInInspector]
         public int colorindex = 0;
@@ -108,7 +108,7 @@ namespace PandaRobot
             m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
             m_Ros.RegisterPublisher<Int16Msg>(reset_n_poses);
             m_Ros.RegisterPublisher<Int16Msg>(gripperAction);
-
+            responseforLine = new PandaManyPosesResponse();
 
             // get robot's joints 
             m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
@@ -187,7 +187,7 @@ namespace PandaRobot
         public void Publish_many()
         {
             // used to publish the movement along the waypoints
-            colorindex = -1;
+            colorindex = 0;
             if (robot_poses.Count > 0) {
                 // all the necceaasy information for the request 
                 var request = new PandaManyPosesRequest(); 
@@ -256,9 +256,15 @@ namespace PandaRobot
             {
                 joints[i] = m_JointArticulationBodies[i].jointPosition[0];
             }
+            Vector3 newObjTransformation = new Vector3();
             request.current_joints = joints;
-            Vector3 newObjTransformation = Reciever.positions.Peek();
-            newObjRotation = Reciever.rotations.Peek();
+            try {
+                newObjTransformation = Reciever.positions.Peek();
+                newObjRotation = Reciever.rotations.Peek();
+            } catch {
+                newObjTransformation = Reciever.testtopick.transform.position;
+            }
+           
             Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
 
             request.pick_pose = new PoseMsg
@@ -286,30 +292,30 @@ namespace PandaRobot
             m_Ros.SendServiceMessage<PandaManyPosesResponse>(waypoints_service, request, PandaTrajectoryResponse);
         }
 
-        void PandaTrajectoryResponse(PandaPickUpResponse response)
-        {
-            // Debug.Log(response);
-            if (response.trajectories.Length > 0)
-            {
-                Debug.Log("Trajectory returned.");
-                messagestoshow.Push("Trajectory returned.");
-                Debug.Log(response);
-                Debug.Log("Cleaned trajectories for the robot");
-                trajectoriesForRobot = new List<RobotTrajectoryMsg>();
-                responseforLine = response;
-                StartCoroutine(ExecuteTrajectories(response.trajectories));
-            }
-            else
-            {
+        // void PandaTrajectoryResponse(PandaPickUpResponse response)
+        // {
+        //     // Debug.Log(response);
+        //     if (response.trajectories.Length > 0)
+        //     {
+        //         Debug.Log("Trajectory returned.");
+        //         messagestoshow.Push("Trajectory returned.");
+        //         Debug.Log(response);
+        //         Debug.Log("Cleaned trajectories for the robot");
+        //         trajectoriesForRobot = new List<RobotTrajectoryMsg>();
+        //         responseforLine = response;
+        //         StartCoroutine(ExecuteTrajectories(response.trajectories));
+        //     }
+        //     else
+        //     {
 
-                // if cannot find the path - remove the cube from the game a remove the id 
-                messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
-                int id = Reciever.ids[Reciever.ids.Count - 1];
-                Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
-                Debug.LogError("No trajectory returned from MoverService.");
-                Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
-            }
-        }
+        //         // if cannot find the path - remove the cube from the game a remove the id 
+        //         messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
+        //         int id = Reciever.ids[Reciever.ids.Count - 1];
+        //         Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
+        //         Debug.LogError("No trajectory returned from MoverService.");
+        //         Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
+        //     }
+        // }
 
         
 
@@ -379,7 +385,7 @@ namespace PandaRobot
                 Debug.Log("Trajectory returned.");
                 messagestoshow.Push("Trajectory returned.");
                 Debug.Log(response);
-                // responseforLine = response;
+                responseforLine = response;
                 StartCoroutine(RunAllTrajectories(response));
                
             } else {
@@ -515,7 +521,7 @@ namespace PandaRobot
         public void MoveRealRobot() {
             /// <summary>
             /// Moving real robot, based on the trajectories saved earlier during the exacution inside the unity
-            /// trajecotry saved in trajectoriesForRobot, calling in this way so i can wait for the execution to finish 
+            /// trajecotry saved in trajectoriesForRobot, calling in this way so i can wait for the execution 
             /// </summary>
             StartCoroutine(SendTrajectoriesToRealRobot());
         }
@@ -527,28 +533,36 @@ namespace PandaRobot
             Int16Msg pose_n = new Int16Msg();
             pose_n.data =  (short) 0;
             m_Ros.Publish(reset_n_poses, pose_n);
+            // yield return new WaitForSeconds(2);
             // start with openning the gripper 
             Int16Msg gripper = new Int16Msg();
-            gripper.data = (short) 0;
+            // gripper.data = (short) 0;
             // m_Ros.Publish(gripperAction, gripper);
             for (int i = 0; i < trajectoriesForRobot.Count; i++) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, trajectoriesForRobot[i]);
                  // close and open the gripper when the robot is in the pose to close/open the gripper 
-                yield return new WaitForSeconds(1);
-                if (i == closegripper) {
-                    gripper.data = (short) 1;
-                    m_Ros.Publish(gripperAction, gripper);
-                    yield return new WaitForSeconds(1);
-                } else if (i == opengripper) {
-                    gripper.data = (short) 0;
-                    m_Ros.Publish(gripperAction, gripper);
-                    yield return new WaitForSeconds(1);
-                }
+                // yield return new WaitForSecondsRealtime(2);
+                // if (i == closegripper) {
+                //     gripper.data = (short) 1;
+                //     m_Ros.Publish(gripperAction, gripper);
+                //     yield return new WaitForSecondsRealtime(2);
+                // } 
+                // else if (i == opengripper) {
+                //     gripper.data = (short) 0;
+                //     m_Ros.Publish(gripperAction, gripper);
+                //     yield return new WaitForSeconds(2);
+                // }
             }  
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSecondsRealtime(2);
             gripper.data = (short) 0;
-            m_Ros.Publish(gripperAction, gripper);
+            // m_Ros.Publish(gripperAction, gripper);
+            // remove old traj, reset open/close gripper poses 
+            trajectoriesForRobot = new List<RobotTrajectoryMsg>();
+            closegripper = -1;
+            opengripper = -1;
+            gripper.data = (short) 0;
+            // m_Ros.Publish(gripperAction, gripper);
         }
 
 
