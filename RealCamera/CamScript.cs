@@ -99,6 +99,8 @@ public class CamScript : MonoBehaviour
     public void StartStopCam_Clicked(ImageMsg img) {
         // Debug.Log("go message");
         // Debug.Log($"message {frame} recieved {img.data.Length} stack {imgmessages.Count} size {img.height}");
+        if (currenttopic == 1)
+            BgrToRgb(img.data);
         imgmessages.Push(img.data);
         frame++;
         // // BgrToRgb(img.data); // done in the video_stream.cpp file 
