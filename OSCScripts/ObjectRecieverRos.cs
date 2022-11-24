@@ -24,6 +24,7 @@ public class ObjectRecieverRos : MonoBehaviour {
     public Stack<Vector3> positions;
     [HideInInspector]
     public Stack<Quaternion> rotations;
+    public GameObject lastobject;
     [HideInInspector]
     public List<int> ids;
     ROSConnection m_Ros;
@@ -34,6 +35,7 @@ public class ObjectRecieverRos : MonoBehaviour {
     public Dictionary<int,int> label_mapping;
     int best_n_detectableobject = 0;
     JObject lastmsg;
+    public GameObject testtopick;
     public int id = 1;
     // int camdims = 256;
 
@@ -172,7 +174,7 @@ public class ObjectRecieverRos : MonoBehaviour {
         // this.rotations.Push(rot);
         // this.ids.Add(id*objclass);
         id++;
-
+        testtopick = newObj;
         // prefab.GetComponent<Renderer>().material.color = newColor;
 	}
 }

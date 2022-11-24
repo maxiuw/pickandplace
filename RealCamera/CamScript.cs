@@ -38,11 +38,12 @@ public class CamScript : MonoBehaviour
         imgmessages = new Stack<byte[]>();
         // passthrough disabled at the start 
         table_display.enabled = false;    
+        m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
+
     }
 
-    public void StartSub() {
-        m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
-    }
+    // public void StartSub() {
+    // }
     private void Update() {
         frame_unity++;
         if (frame_unity == 5) { //  & imgmessages.Count > 0
@@ -98,6 +99,8 @@ public class CamScript : MonoBehaviour
     public void StartStopCam_Clicked(ImageMsg img) {
         // Debug.Log("go message");
         // Debug.Log($"message {frame} recieved {img.data.Length} stack {imgmessages.Count} size {img.height}");
+        if (currenttopic == 1)
+            BgrToRgb(img.data);
         imgmessages.Push(img.data);
         frame++;
         // // BgrToRgb(img.data); // done in the video_stream.cpp file 

@@ -41,6 +41,8 @@ public class ActivateCanvas : MonoBehaviour
         // buttonY.transform.position = new Vector3(buttonY.transform.position.x, buttonY.transform.position.y + 0.01f, buttonY.transform.position.z);
         try {
             buttonX.GetComponentInChildren<ParticleSystem>().Play();
+            buttonX.transform.Translate(0, 0.1f, 0);
+            buttonX.transform.Translate(0, -0.1f, 0);
         } catch {}
         if (objectCreationCanvas.active == false) {
             objectCreationCanvas.SetActive(true);
@@ -57,6 +59,9 @@ public class ActivateCanvas : MonoBehaviour
         // objects have to be added in unity, unactive ojbects cannot be found
         try {
             buttonY.GetComponentInChildren<ParticleSystem>().Play(); 
+            buttonY.transform.Translate(0, 0.1f, 0);
+            buttonY.transform.Translate(0, -0.1f, 0);
+
         } catch {}
         if (objectRobotUICanvas.active == false) {
             objectRobotUICanvas.SetActive(true);
