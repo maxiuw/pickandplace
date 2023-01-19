@@ -1,0 +1,1 @@
+Food_Apple_Red: 0, 0.5

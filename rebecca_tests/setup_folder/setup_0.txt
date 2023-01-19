@@ -1,0 +1,2 @@
+CubeDetected: 0.1, 0.6
+banana: -0.1, 0.55

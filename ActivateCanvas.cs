@@ -99,17 +99,19 @@ public class ActivateCanvas : MonoBehaviour
         }
     }
 
-    public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null) {
+    public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null, Vector3? p = null, string? name_given = null) {
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
         // choose object
         GameObject prefab = objects[obj_id];
         lastobj_id = obj_id;
         // assign middle of the box as new point
         Vector3 position = new Vector3();
-        Quaternion rotation = new Quaternion();
+        Quaternion rotation = new Quaternion(0,0,0,1);
         // using the function to randomly insert the objects in the middle of the box or in where they were moved  
-        if (t == null){
+        if (t == null && p == null) { 
             position = new Vector3(0.135f, 0.83f, 0.5f);
+        } else if (t == null && p != null) {
+            position = (Vector3) p;
         } else {
             position = (Vector3) t.position;
             rotation = (Quaternion) t.rotation;
@@ -117,9 +119,14 @@ public class ActivateCanvas : MonoBehaviour
         // create the prefab
         prefab.SetActive(true);
         System.Random rnd = new System.Random();
-        string name = rnd.Next(1, 99).ToString().PadLeft(2,'0'); // format 00 
-        prefab.name = $"cube{name}";
+        // prefab.name = $"cube{name}";
         GameObject newObj = Instantiate(prefab);
+        string rnd_id = rnd.Next(1, 99).ToString().PadLeft(2,'0'); // format 00 
+        if (name_given == null) {
+            newObj.name = $"{prefab.name}";
+        } else {
+            newObj.name = $"{name_given}{rnd_id}";
+        }
         newObj.transform.position = position;
         newObj.transform.rotation = rotation;
         // behaviour - use behavior to enable/disable particular script component in the gameobject

@@ -1,0 +1,2 @@
+Food_Apple_Red: -0.1, 0.55
+banana: 0.1, 0.6

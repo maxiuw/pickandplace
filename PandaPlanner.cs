@@ -126,6 +126,11 @@ namespace PandaRobot
             var leftGripper = linkName + "/panda_link8/panda_hand/panda_leftfinger";
             m_RightGripper = Panda.transform.Find(rightGripper).GetComponent<ArticulationBody>();
             m_LeftGripper = Panda.transform.Find(leftGripper).GetComponent<ArticulationBody>();
+
+            // reset the real robot to the home position
+            MoveToRealRobotPose();
+            SendMeHome();
+            MoveRealRobot();
         }
         
         IEnumerator CloseGripper()
@@ -141,7 +146,6 @@ namespace PandaRobot
             m_RightGripper.xDrive = rightDrive;
             // so that the robot waits until finish execution
             yield return new WaitForSeconds(k_PoseAssignmentWait);
-
         }
 
         /// <summary>
@@ -292,44 +296,6 @@ namespace PandaRobot
             m_Ros.SendServiceMessage<PandaManyPosesResponse>(waypoints_service, request, PandaTrajectoryResponse);
         }
 
-        // void PandaTrajectoryResponse(PandaPickUpResponse response)
-        // {
-        //     // Debug.Log(response);
-        //     if (response.trajectories.Length > 0)
-        //     {
-        //         Debug.Log("Trajectory returned.");
-        //         messagestoshow.Push("Trajectory returned.");
-        //         Debug.Log(response);
-        //         Debug.Log("Cleaned trajectories for the robot");
-        //         trajectoriesForRobot = new List<RobotTrajectoryMsg>();
-        //         responseforLine = response;
-        //         StartCoroutine(ExecuteTrajectories(response.trajectories));
-        //     }
-        //     else
-        //     {
-
-        //         // if cannot find the path - remove the cube from the game a remove the id 
-        //         messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
-        //         int id = Reciever.ids[Reciever.ids.Count - 1];
-        //         Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
-        //         Debug.LogError("No trajectory returned from MoverService.");
-        //         Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
-        //     }
-        // }
-
-        
-
-        /// <summary>
-        ///     Execute the returned trajectories from the MoverService.
-        ///     The expectation is that the MoverService will return four trajectory plans,
-        ///     PreGrasp, Grasp, PickUp, and Place,
-        ///     where each plan is an array of robot poses. A robot pose is the joint angle values
-        ///     of the six robot joints.
-        ///     Executing a single trajectory will iterate through every robot pose in the array while updating the
-        ///     joint values on the robot.
-        /// </summary>
-        /// <param name="response"> MoverServiceResponse received from niryo_moveit mover service running in ROS</param>
-        /// <returns></returns>
         IEnumerator ExecuteTrajectories(RobotTrajectoryMsg[] response)
         {
             OpenGripper();
