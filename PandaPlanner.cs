@@ -107,7 +107,7 @@ namespace PandaRobot
             m_Ros.RegisterPublisher<RobotTrajectoryMsg>(realrobot_move_topic);
             m_Ros.RegisterPublisher<Int16Msg>(pub_number_of_poses);
             m_Ros.RegisterPublisher<Int16Msg>(reset_n_poses);
-            m_Ros.RegisterPublisher<Int16Msg>(gripperAction);
+            m_Ros.RegisterPublisher<FloatListMsg>(gripperAction);
             responseforLine = new PandaManyPosesResponse();
 
             // get robot's joints 
@@ -384,12 +384,12 @@ namespace PandaRobot
                 yield return new WaitForSeconds(k_JointAssignmentWait);
             yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_pick));
             yield return new WaitForSeconds(k_JointAssignmentWait);
-            closegripper = colorindex;
+            closegripper = 3;
             yield return StartCoroutine(CloseGripper());
             yield return new WaitForSeconds(k_JointAssignmentWait);
             yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_postpick));
             yield return new WaitForSeconds(k_JointAssignmentWait);
-            opengripper = colorindex;
+            opengripper = 5;
             yield return StartCoroutine(OpenGripper());
             Debug.Log($"close {closegripper} open {opengripper}");
             colorindex = -1; // added to stop generating waypoints 
@@ -514,20 +514,25 @@ namespace PandaRobot
             m_Ros.Publish(reset_n_poses, pose_n);
             // yield return new WaitForSeconds(2);
             // start with openning the gripper 
-            Int16Msg gripper = new Int16Msg();
+            // sending when to open and close the gripper
+            FloatListMsg gripper = new FloatListMsg();
+            gripper.joints = new double[2];
+            gripper.joints[0] = (double) closegripper;
+            gripper.joints[1] = (double) opengripper;
+            m_Ros.Publish(gripperAction, gripper);
             // gripper.data = (short) 0;
             // m_Ros.Publish(gripperAction, gripper);
             for (int i = 0; i < trajectoriesForRobot.Count; i++) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, trajectoriesForRobot[i]);
-                 // close and open the gripper when the robot is in the pose to close/open the gripper 
+                //  close and open the gripper when the robot is in the pose to close/open the gripper 
                 // yield return new WaitForSecondsRealtime(2);
-                // if (i == closegripper) {
+                // if (i == closegripper-1) {
                 //     gripper.data = (short) 1;
                 //     m_Ros.Publish(gripperAction, gripper);
                 //     yield return new WaitForSecondsRealtime(2);
                 // } 
-                // else if (i == opengripper) {
+                // else if (i == opengripper-) {
                 //     gripper.data = (short) 0;
                 //     m_Ros.Publish(gripperAction, gripper);
                 //     yield return new WaitForSeconds(2);

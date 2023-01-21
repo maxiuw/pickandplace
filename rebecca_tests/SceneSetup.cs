@@ -19,7 +19,7 @@ public class SceneSetup : MonoBehaviour
     public Dictionary<string,Vector2> detected_objects;
     public GameObject[] detectable;
     public ActivateCanvas object_inserter;
-    float timeRemaining = 80f;
+    float timeRemaining = 800f;
     float maxtime;
     bool timerIsRunning = true;
     public Text timeText;
@@ -42,9 +42,9 @@ public class SceneSetup : MonoBehaviour
         // string path = $"/media/raghav/m2/VRHRI_Rebecca/Assets/Scripts/rebecca_tests/setup_folder/setup_{int.Parse(scene_name[scene_name.Length - 1].ToString())}.txt"; // filename 
         // string path_missing = $"/media/raghav/m2/VRHRI_Rebecca/Assets/Scripts/rebecca_tests/setup_folder/missing_{int.Parse(scene_name[scene_name.Length - 1].ToString())}.txt"; // missing obj
         // GetSetup();
-        foreach (string key in detected_objects.Keys) {
-            AddObjects(key, detected_objects[key]);
-        }
+        // foreach (string key in detected_objects.Keys) {
+        //     AddObjects(key, detected_objects[key]);
+        // }
         maxtime = timeRemaining;
         // init ros 
         m_Ros = ROSConnection.GetOrCreateInstance();
@@ -104,17 +104,19 @@ public class SceneSetup : MonoBehaviour
     void Save_Detected_Objects(StringMsg msg) {
         // remove '{' and '}' from the string
         string line = msg.data.Replace("{", "").Replace("}", "").Replace('"',' ').Replace(" ", "");
-        Debug.Log(line);
+        // Debug.Log(line);
         char[] splitters = {',',':'};
         string[] splitted = line.Split(splitters);
         detected_objects[splitted[0]] = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
         detected_objects[splitted[3]] = new Vector2(float.Parse(splitted[4]), float.Parse(splitted[5]));
+        detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
     }
 
     void Save_Missing_Objects(StringMsg msg) {
         // Debug.Log(msg.data);
-        string line = msg.data.Replace("{", "").Replace("}", "");
+        string line = msg.data.Replace("{", "").Replace("}", "").Replace('"',' ').Replace(" ", "");
         char[] splitters = {',',':'};
+        Debug.Log(line);
         string[] splitted = line.Split(splitters);
         missing_class = splitted[0];
         missing_position = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
@@ -128,7 +130,8 @@ public class SceneSetup : MonoBehaviour
         for (int i = 0; i < object_inserter.objects.Length; i ++) {
             if (object_inserter.objects[i].name.ToLower().Contains(key.ToLower())) {
                 Vector3 position = new Vector3(obj_position.x, 0.85f ,obj_position.y);
-                object_inserter.InsertObj(i, false, true, null, position, key);
+                object_inserter.InsertObj(i, true, false, null, position, key);  // object_inserter.InsertObj(i, false, false, null, position, key);
+
             }
         }
     }
