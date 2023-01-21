@@ -88,7 +88,7 @@ namespace PandaRobot
         [HideInInspector]
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
-
+        public bool robot_on_the_position = false;
         void Start()
         {
             // initiate all the variables and find the robot on start 
@@ -128,10 +128,21 @@ namespace PandaRobot
             m_LeftGripper = Panda.transform.Find(leftGripper).GetComponent<ArticulationBody>();
 
             // reset the real robot to the home position
-            MoveToRealRobotPose();
-            SendMeHome();
-            MoveRealRobot();
+            // while (!MoveToRealRobotPose())
+            // {
+            //     Debug.Log("Waiting for the robot to be ready");
+            // }
+
+            // SendMeHome();
+            // MoveRealRobot();
         }
+        void Update() {
+            // try to move the robot to the real pose and change robot_on_the_position
+            if (!robot_on_the_position) {
+                MoveToRealRobotPose();
+            }
+        }
+
         
         IEnumerator CloseGripper()
         {
@@ -448,8 +459,10 @@ namespace PandaRobot
                     joint1XDrive.target = response_array[joint];
                     m_JointArticulationBodies[joint].xDrive = joint1XDrive;
                 }
+                robot_on_the_position = true;
             } catch {
                 Debug.Log("Wait a couple of seconds, I have not recieved any poses yet.");
+                robot_on_the_position = false;
             }
             
 

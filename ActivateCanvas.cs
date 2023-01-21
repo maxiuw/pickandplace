@@ -121,11 +121,11 @@ public class ActivateCanvas : MonoBehaviour
         System.Random rnd = new System.Random();
         // prefab.name = $"cube{name}";
         GameObject newObj = Instantiate(prefab);
-        string rnd_id = rnd.Next(1, 99).ToString().PadLeft(2,'0'); // format 00 
+        // string rnd_id = rnd.Next(1, 99).ToString().PadLeft(2,'0'); // format 00 
         if (name_given == null) {
             newObj.name = $"{prefab.name}";
         } else {
-            newObj.name = $"{name_given}{rnd_id}";
+            newObj.name = $"{name_given}";
         }
         newObj.transform.position = position;
         newObj.transform.rotation = rotation;
