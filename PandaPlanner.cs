@@ -89,6 +89,7 @@ namespace PandaRobot
         public float panda_y_offset = 0.64f; // table height, in ros it is set to 0
         List<RobotTrajectoryMsg> trajectoriesForRobot;
         public bool robot_on_the_position = false;
+        public SceneSetup scenesetup_tool;
         void Start()
         {
             // initiate all the variables and find the robot on start 
@@ -260,7 +261,7 @@ namespace PandaRobot
 
         public void PublishJoints()
         {
-
+            scenesetup_tool.SaveTime("Object_placed");
             // dealing with target placement 
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
             m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\

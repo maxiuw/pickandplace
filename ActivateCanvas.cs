@@ -93,7 +93,6 @@ public class ActivateCanvas : MonoBehaviour
             // do nothing pass
             Debug.Log("you have not added any object");
         }
-
         
         // lastObject = new GameObject();
         // lastObject.AddComponent<BoxCollider>();
@@ -111,13 +110,13 @@ public class ActivateCanvas : MonoBehaviour
         lastobj_id = obj_id;
         // assign middle of the box as new point
         Vector3 position = new Vector3();
-        Quaternion rotation = new Quaternion(0,0.7071f,0,0.7071f);
+        Quaternion rotation = new Quaternion();
         // using the function to randomly insert the objects in the middle of the box or in where they were moved  
         if (t == null && p == null) { 
             position = new Vector3(0.135f, 0.83f, 0.5f);
         } else if (t == null && p != null) {
             position = (Vector3) p;
-        } else {
+        } else if (t != null) {
             position = (Vector3) t.position;
             rotation = (Quaternion) t.rotation;
         }
@@ -133,10 +132,10 @@ public class ActivateCanvas : MonoBehaviour
             newObj.name = $"{name_given}";
         }
         newObj.transform.position = position;
-        newObj.transform.rotation = new Quaternion(0,0,0,1);
-        if (newObj.name == "banana") {
-            newObj.transform.rotation = new Quaternion(0,0.7071f,0,0.7071f);
-        } 
+        newObj.transform.rotation = rotation;
+        // if (newObj.name == "banana") {
+        //     newObj.transform.rotation = new Quaternion(0,0.7071f,0,0.7071f);
+        // } 
         // behaviour - use behavior to enable/disable particular script component in the gameobject
         // https://stackoverflow.com/questions/51736534/component-does-not-contain-a-definition-for-enabled-and-no-extension-method
         Behaviour bhw = (Behaviour) newObj.GetComponent("XRSimpleInteractable");

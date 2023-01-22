@@ -24,7 +24,7 @@ public class SceneSetup : MonoBehaviour
     bool timerIsRunning = true;
     public Text timeText;
     public Vector2 missing_position = new Vector2(0,0);
-    string[] object_names = {"banana", "CubeDetected", "Food_Apple_Red"};
+    string[] object_names = {"Banana", "CubeDetected", "Food_Apple_Red"};
     string scene_name;
     public GameObject m_MyGameObject;
     GameObject missing_obj;
@@ -132,11 +132,16 @@ public class SceneSetup : MonoBehaviour
         missing_obj = GameObject.Find(name);
         // calculate distance between the object and the ground truth
         if (missing_obj != null) {
-            SaveTime("Added_object");
-            float distance = CalculateDistanceBetweenTheObjecs2D(missing_obj, detected_objects[name]);
+            // save time at the moment when the object was added
+            if (!time_logs.ContainsKey("Added_object")) {
+                SaveTime("Added_object");
+            } 
+                // saving distance to the time_logs dictionary
+                time_logs["dist2target"] = CalculateDistanceBetweenTheObjecs2D(missing_obj, missing_position);
+            
         }
         else {
-            // Debug.Log("Object not found");
+            Debug.Log("Object not found");
         }  
     }
     public float CalculateDistanceBetweenTheObjecs2D(GameObject obj1, Vector2 gt) {
