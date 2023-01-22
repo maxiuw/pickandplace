@@ -29,7 +29,8 @@ public class CamScript : MonoBehaviour
     Stack<byte[]> imgmessages;
     byte[] last_imgmessages;
     public GameObject XROrgin;
-    public bool passthrough = false;
+    public bool passthrough = true;
+
     void Start() {
         // init all necessary stuff
         m_Ros = ROSConnection.GetOrCreateInstance();
@@ -37,9 +38,8 @@ public class CamScript : MonoBehaviour
         // queue for images since subscriber does not support that 
         imgmessages = new Stack<byte[]>();
         // passthrough disabled at the start 
-        table_display.enabled = false;    
+        table_display.enabled = passthrough;    
         m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
-
     }
 
     // public void StartSub() {

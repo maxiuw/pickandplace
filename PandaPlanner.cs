@@ -539,13 +539,13 @@ namespace PandaRobot
                 // }
             }  
             yield return new WaitForSecondsRealtime(2);
-            gripper.data = (short) 0;
+            // gripper.data = (short) 0;
             // m_Ros.Publish(gripperAction, gripper);
             // remove old traj, reset open/close gripper poses 
             trajectoriesForRobot = new List<RobotTrajectoryMsg>();
-            closegripper = -1;
-            opengripper = -1;
-            gripper.data = (short) 0;
+            // closegripper = -1;
+            // opengripper = -1;
+            // gripper.data = (short) 0;
             // m_Ros.Publish(gripperAction, gripper);
         }
 

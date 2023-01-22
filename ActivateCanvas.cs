@@ -16,6 +16,9 @@ public class ActivateCanvas : MonoBehaviour
     public Button ButtonBottle;
     public Button ButtonBanana;    
     public Button ButtonOrange;    
+    public Button ButtonHammer;    
+    public Button ButtonScrewDriver;    
+
     public GameObject buttonX;
     public GameObject buttonY;
 
@@ -26,11 +29,13 @@ public class ActivateCanvas : MonoBehaviour
         // save last button so that we can remove grabbable 
         // lastObject = new GameObject();
         // delegate between different option for different object we want to insert
-        ButtonOrange.onClick.AddListener(delegate{InsertObj(4);});
-        ButtonCube.onClick.AddListener(delegate{InsertObj(3);});
-        ButtonApple.onClick.AddListener(delegate{InsertObj(2);});
-        ButtonBottle.onClick.AddListener(delegate{InsertObj(1);});
         ButtonBanana.onClick.AddListener(delegate{InsertObj(0);});
+        ButtonBottle.onClick.AddListener(delegate{InsertObj(1);});
+        ButtonApple.onClick.AddListener(delegate{InsertObj(2);});
+        ButtonCube.onClick.AddListener(delegate{InsertObj(3);});
+        ButtonOrange.onClick.AddListener(delegate{InsertObj(4);});   
+        ButtonHammer.onClick.AddListener(delegate{InsertObj(5);});
+        ButtonScrewDriver.onClick.AddListener(delegate{InsertObj(6);});
 
     }
     public void Activate()

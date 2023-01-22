@@ -68,15 +68,7 @@ public class SceneSetup : MonoBehaviour
                 Debug.Log("Time has run out!");
                 timeRemaining = 0;
                 timerIsRunning = false;
-                int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
-                string newscenename = $"FrankaScene{sceneidx}"; 
-                Debug.Log(newscenename);
-                // publish the scene idx
-                Int16Msg msg = new Int16Msg();
-                msg.data = (short) sceneidx;
-                m_Ros.Publish("/scene_idx", msg);
-                UnityEngine.SceneManagement.SceneManager.LoadScene(newscenename);      
-                UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene_name); 
+                LoadNewScene();
             }
             if (missing_obj != null) {
                 CalculateDistanceBetweenTheObjecs2D(missing_obj, missing_position);
@@ -109,14 +101,13 @@ public class SceneSetup : MonoBehaviour
         string[] splitted = line.Split(splitters);
         detected_objects[splitted[0]] = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
         detected_objects[splitted[3]] = new Vector2(float.Parse(splitted[4]), float.Parse(splitted[5]));
-        detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
+        // detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
     }
-
     void Save_Missing_Objects(StringMsg msg) {
         // Debug.Log(msg.data);
         string line = msg.data.Replace("{", "").Replace("}", "").Replace('"',' ').Replace(" ", "");
         char[] splitters = {',',':'};
-        Debug.Log(line);
+        // Debug.Log(line);
         string[] splitted = line.Split(splitters);
         missing_class = splitted[0];
         missing_position = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
@@ -126,7 +117,6 @@ public class SceneSetup : MonoBehaviour
     public void AddObjects(string key, Vector2 obj_position) {
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
         // choose object
-        GameObject prefab = new GameObject();
         for (int i = 0; i < object_inserter.objects.Length; i ++) {
             if (object_inserter.objects[i].name.ToLower().Contains(key.ToLower())) {
                 Vector3 position = new Vector3(obj_position.x, 0.85f ,obj_position.y);
@@ -146,19 +136,30 @@ public class SceneSetup : MonoBehaviour
             float distance = CalculateDistanceBetweenTheObjecs2D(missing_obj, detected_objects[name]);
         }
         else {
-            Debug.Log("Object not found");
+            // Debug.Log("Object not found");
         }  
     }
     public float CalculateDistanceBetweenTheObjecs2D(GameObject obj1, Vector2 gt) {
         // calculate distance between the object and the ground truth
         float distance = Mathf.Sqrt(Mathf.Pow((obj1.transform.position.x - gt.x), 2) + Mathf.Pow((obj1.transform.position.z - gt.y), 2));
-        Debug.Log(distance);
+        // Debug.Log(distance);
         return distance;
     }
     public void SaveTime(string option) {
         // save time logs
         time_logs[option] = maxtime - timeRemaining;
-        Debug.Log(time_logs[option]);
+        // Debug.Log(time_logs[option]);
+    }
+    void LoadNewScene() {
+        int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
+        string newscenename = $"FrankaScene{sceneidx}"; 
+        Debug.Log(newscenename);
+        // publish the scene idx
+        Int16Msg msg = new Int16Msg();
+        msg.data = (short) sceneidx;
+        m_Ros.Publish("/scene_idx", msg);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(newscenename);      
+        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene_name); 
     }
      // void GetSetup(string path, string path_missing) {
     //     // getset up from the file
