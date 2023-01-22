@@ -1,3 +1,4 @@
+using System;
 // using System.Diagnostics;
 using System.Security.AccessControl;
 using System.Collections;
@@ -13,6 +14,7 @@ using RosMessageTypes.Panda;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using PandaRobot;
+
 public class SceneSetup : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -155,7 +157,7 @@ public class SceneSetup : MonoBehaviour
         time_logs[option] = maxtime - timeRemaining;
         // Debug.Log(time_logs[option]);
     }
-    void LoadNewScene() {
+    public void LoadNewScene() {
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
         string newscenename = $"FrankaScene{sceneidx}"; 
         Debug.Log(newscenename);
@@ -165,6 +167,14 @@ public class SceneSetup : MonoBehaviour
         m_Ros.Publish("/scene_idx", msg);
         UnityEngine.SceneManagement.SceneManager.LoadScene(newscenename);      
         UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene_name); 
+        DateTime now = DateTime.Now;
+        // iterate over time_logs and save it to the file
+        foreach (string key in time_logs.Keys) {
+            using (StreamWriter sw = File.AppendText($"{now}.txt")) {
+                sw.WriteLine($"{key}:{time_logs[key]}\n");
+            }
+        }
+
     }
      // void GetSetup(string path, string path_missing) {
     //     // getset up from the file
