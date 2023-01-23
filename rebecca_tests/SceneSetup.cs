@@ -158,7 +158,19 @@ public class SceneSetup : MonoBehaviour
         // Debug.Log(time_logs[option]);
     }
     public void LoadNewScene() {
+        // iterate over time_logs and publish it to the ros topic
+        foreach (string key in time_logs.Keys) {
+            // register publuisher at each key 
+            m_Ros.RegisterPublisher<Float32Msg>($"/{key}");
+            Float32Msg msg1 = new Float32Msg();
+            msg1.data = time_logs[key];
+            m_Ros.Publish($"/{key}", msg1);
+        }
+        // get the current scene name
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
+        if (sceneidx == 3)
+            // quit the applciation 
+            Application.Quit();
         string newscenename = $"FrankaScene{sceneidx}"; 
         Debug.Log(newscenename);
         // publish the scene idx
@@ -167,13 +179,17 @@ public class SceneSetup : MonoBehaviour
         m_Ros.Publish("/scene_idx", msg);
         UnityEngine.SceneManagement.SceneManager.LoadScene(newscenename);      
         UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene_name); 
-        DateTime now = DateTime.Now;
-        // iterate over time_logs and save it to the file
-        foreach (string key in time_logs.Keys) {
-            using (StreamWriter sw = File.AppendText($"{now}.txt")) {
-                sw.WriteLine($"{key}:{time_logs[key]}\n");
-            }
-        }
+        // DateTime now = DateTime.Now;
+        
+
+
+
+        // // iterate over time_logs and save it to the file
+        // foreach (string key in time_logs.Keys) {
+        //     using (StreamWriter sw = File.AppendText($"{now}.txt")) {
+        //         sw.WriteLine($"{key}:{time_logs[key]}\n");
+        //     }
+        // }
 
     }
      // void GetSetup(string path, string path_missing) {

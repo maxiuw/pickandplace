@@ -20,7 +20,7 @@ public class OnObjectSelected : MonoBehaviour
         } catch {
             Debug.Log("did not find the object");
         }
-        reciever.ids.Add(int.Parse((this.name.Substring(4,2)))); // name is cube00clone where 00 is the idx
+        // reciever.ids.Add(int.Parse((this.name.Substring(4,2)))); // name is cube00clone where 00 is the idx
         this.GetComponent<Rigidbody>().isKinematic = false;
         // Debug.Log($"I will pick {int.Parse((this.name.Substring(4,2)))}");
     }

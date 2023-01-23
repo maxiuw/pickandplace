@@ -26,7 +26,7 @@ public class ObjectRecieverRos : MonoBehaviour {
     public Stack<Quaternion> rotations;
     public GameObject lastobject;
     [HideInInspector]
-    public List<int> ids;
+    // public List<int> ids;
     ROSConnection m_Ros;
     public float table_y = 0.8f;
     public float camera_height = 250; // Z of the camera in the world 

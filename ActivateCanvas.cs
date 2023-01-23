@@ -75,7 +75,6 @@ public class ActivateCanvas : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     public void Deactivate(string canvasname)
     {
         // deactivating canvas on the clikck 
@@ -106,7 +105,14 @@ public class ActivateCanvas : MonoBehaviour
     public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null, Vector3? p = null, string? name_given = null) {
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
         // choose object
+
         GameObject prefab = objects[obj_id];
+        // if object of the prefab name or name_given already exists, then destroy it 
+        if (name_given != null) {
+            Destroy(GameObject.Find(name_given));
+        } else {
+            Destroy(GameObject.Find(prefab.name));
+        }
         lastobj_id = obj_id;
         // assign middle of the box as new point
         Vector3 position = new Vector3();
@@ -128,6 +134,7 @@ public class ActivateCanvas : MonoBehaviour
         // string rnd_id = rnd.Next(1, 99).ToString().PadLeft(2,'0'); // format 00 
         if (name_given == null) {
             newObj.name = $"{prefab.name}";
+
         } else {
             newObj.name = $"{name_given}";
         }

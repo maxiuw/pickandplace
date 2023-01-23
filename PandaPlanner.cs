@@ -369,10 +369,10 @@ namespace PandaRobot
             } else {
                 // if cannot find the path - remove the cube from the game a remove the id 
                 messagestoshow.Push("I could not find the trajectory. Move your cube or the target placement. Automatically destroying the obj");
-                int id = Reciever.ids[Reciever.ids.Count - 1];
-                Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
-                Debug.LogError("No trajectory returned from MoverService.");
-                Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
+                // int id = Reciever.ids[Reciever.ids.Count - 1];
+                // Destroy(GameObject.Find("cube" + id.ToString() + "(Clone)"));
+                // Debug.LogError("No trajectory returned from MoverService.");
+                // Reciever.ids.RemoveAt(Reciever.ids.Count - 1);
             }
         }
         IEnumerator RunAllTrajectories(PandaManyPosesResponse response) {
