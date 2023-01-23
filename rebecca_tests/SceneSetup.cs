@@ -14,7 +14,7 @@ using RosMessageTypes.Panda;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using PandaRobot;
-
+using System.Linq; 
 public class SceneSetup : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -53,6 +53,8 @@ public class SceneSetup : MonoBehaviour
         m_Ros.Subscribe<StringMsg>("/detected_classes", Save_Detected_Objects);
         m_Ros.Subscribe<StringMsg>("/missing_class", Save_Missing_Objects);
         m_Ros.RegisterPublisher<Int16Msg>("/scene_idx");
+        m_Ros.RegisterPublisher<FloatListMsg>("/time_logs_scene");
+ 
     }
     
     void Update()
@@ -159,13 +161,16 @@ public class SceneSetup : MonoBehaviour
     }
     public void LoadNewScene() {
         // iterate over time_logs and publish it to the ros topic
-        foreach (string key in time_logs.Keys) {
-            // register publuisher at each key 
-            m_Ros.RegisterPublisher<Float32Msg>($"/{key}");
-            Float32Msg msg1 = new Float32Msg();
-            msg1.data = time_logs[key];
-            m_Ros.Publish($"/{key}", msg1);
+        FloatListMsg msg1 = new FloatListMsg();
+        msg1.joints = new double[3];
+        for (int i = 0; i < time_logs.Count; i++) {
+            // add the time_log item to the message 
+            // var item = time_logs.ElementAt(i);
+            msg1.joints[i] = time_logs.ElementAt(i).Value;
         }
+        // publish to time_logs_scene 
+        m_Ros.Publish("/time_logs_scene", msg1);
+        
         // get the current scene name
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
         if (sceneidx == 3)
