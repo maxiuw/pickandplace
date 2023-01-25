@@ -127,15 +127,6 @@ namespace PandaRobot
             var leftGripper = linkName + "/panda_link8/panda_hand/panda_leftfinger";
             m_RightGripper = Panda.transform.Find(rightGripper).GetComponent<ArticulationBody>();
             m_LeftGripper = Panda.transform.Find(leftGripper).GetComponent<ArticulationBody>();
-
-            // reset the real robot to the home position
-            // while (!MoveToRealRobotPose())
-            // {
-            //     Debug.Log("Waiting for the robot to be ready");
-            // }
-
-            // SendMeHome();
-            // MoveRealRobot();
         }
         void Update() {
             // try to move the robot to the real pose and change robot_on_the_position
@@ -261,7 +252,10 @@ namespace PandaRobot
 
         public void PublishJoints()
         {
-            scenesetup_tool.SaveTime("Object_placed");
+            scenesetup_tool.object_placed = scenesetup_tool.timeRemaining - scenesetup_tool.maxtime;
+            try {
+                scenesetup_tool.time_logs["dist2target"] = scenesetup_tool.CalculateDistanceBetweenTheObjecs2D(scenesetup_tool.missing_obj, scenesetup_tool.missing_position);
+            } catch {}
             // dealing with target placement 
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
             m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
@@ -274,13 +268,19 @@ namespace PandaRobot
             }
             Vector3 newObjTransformation = new Vector3();
             request.current_joints = joints;
+            // try {
+            //     newObjTransformation = Reciever.positions.Peek();
+            //     newObjRotation = Reciever.rotations.Peek();
+            // } catch {
+            //     newObjTransformation = Reciever.testtopick.transform.position;
+            // }
             try {
-                newObjTransformation = Reciever.positions.Peek();
-                newObjRotation = Reciever.rotations.Peek();
+                newObjTransformation = scenesetup_tool.missing_obj.transform.position;
+                scenesetup_tool.final_missing_position = newObjTransformation;
             } catch {
-                newObjTransformation = Reciever.testtopick.transform.position;
+                Debug.Log("Could not get the position of the object");
+                return;
             }
-           
             Quaternion hand_orientation = Quaternion.Euler(180, 0, 0); // roty = newObjRotation.eulerAngles.y
 
             request.pick_pose = new PoseMsg

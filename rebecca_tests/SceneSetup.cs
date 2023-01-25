@@ -21,20 +21,26 @@ public class SceneSetup : MonoBehaviour
     public Dictionary<string,Vector2> detected_objects;
     public GameObject[] detectable;
     public ActivateCanvas object_inserter;
-    float timeRemaining = 800f;
-    float maxtime;
+    [HideInInspector]
+    public float timeRemaining = 800f;
+    [HideInInspector]
+    public float maxtime = 800f;
     bool timerIsRunning = true;
     public Text timeText;
     public Vector2 missing_position = new Vector2(0,0);
     string[] object_names = {"Banana", "CubeDetected", "Food_Apple_Red"};
     string scene_name;
-    public GameObject m_MyGameObject;
-    GameObject missing_obj;
+    [HideInInspector]
+    public GameObject missing_obj;
     string missing_class = "";
     public Dictionary<string,float> time_logs = new Dictionary<string,float>();
     // ROS
     ROSConnection m_Ros;
     public PandaPlanner planner;
+    public Vector3 final_missing_position;  
+    double final_distance = 100;
+    double? added_object = null;
+    public double? object_placed = null;
     void Start()
     {
         scene_name = SceneManager.GetActiveScene().name;
@@ -47,7 +53,7 @@ public class SceneSetup : MonoBehaviour
         // foreach (string key in detected_objects.Keys) {
         //     AddObjects(key, detected_objects[key]);
         // }
-        maxtime = timeRemaining;
+        // maxtime = timeRemaining;
         // init ros 
         m_Ros = ROSConnection.GetOrCreateInstance();
         m_Ros.Subscribe<StringMsg>("/detected_classes", Save_Detected_Objects);
@@ -74,10 +80,8 @@ public class SceneSetup : MonoBehaviour
                 timerIsRunning = false;
                 LoadNewScene();
             }
-            if (missing_obj != null) {
-                CalculateDistanceBetweenTheObjecs2D(missing_obj, missing_position);
-            } else {
-                 findObject(missing_class);
+            if (missing_obj == null) {
+                findObject(missing_class);
             } 
             // add objects to the scene if they are not there
             foreach (string key in detected_objects.Keys) {
@@ -135,14 +139,9 @@ public class SceneSetup : MonoBehaviour
         // find the object of the same name
         missing_obj = GameObject.Find(name);
         // calculate distance between the object and the ground truth
-        if (missing_obj != null) {
+        if (missing_obj != null & added_object == null) {
             // save time at the moment when the object was added
-            if (!time_logs.ContainsKey("Added_object")) {
-                SaveTime("Added_object");
-            } 
-                // saving distance to the time_logs dictionary
-                time_logs["dist2target"] = CalculateDistanceBetweenTheObjecs2D(missing_obj, missing_position);
-            
+                added_object =  timeRemaining - maxtime;                     
         }
         else {
             Debug.Log("Object not found");
@@ -154,26 +153,33 @@ public class SceneSetup : MonoBehaviour
         // Debug.Log(distance);
         return distance;
     }
-    public void SaveTime(string option) {
-        // save time logs
-        time_logs[option] = maxtime - timeRemaining;
-        // Debug.Log(time_logs[option]);
+    public float CalculateDistanceBetweenFinalMissing() {
+        // final_missing_position and gt
+        return Mathf.Sqrt(Mathf.Pow((final_missing_position.x - missing_position.x), 2) + Mathf.Pow((final_missing_position.y - missing_position.y), 2));
     }
     public void LoadNewScene() {
         // iterate over time_logs and publish it to the ros topic
+        final_distance = (double) CalculateDistanceBetweenFinalMissing();
         FloatListMsg msg1 = new FloatListMsg();
         msg1.joints = new double[3];
-        for (int i = 0; i < time_logs.Count; i++) {
-            // add the time_log item to the message 
-            // var item = time_logs.ElementAt(i);
-            msg1.joints[i] = time_logs.ElementAt(i).Value;
+        // time logs and distances to publish 
+        try {
+            msg1.joints[0] = (double) added_object;
+        } catch {
+            msg1.joints[0] = 0;
         }
+        try {
+            msg1.joints[1] = (double) object_placed;
+        } catch {
+            msg1.joints[2] = 0;
+        }
+        msg1.joints[2] = final_distance;
         // publish to time_logs_scene 
         m_Ros.Publish("/time_logs_scene", msg1);
         
         // get the current scene name
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
-        if (sceneidx == 3)
+        if (sceneidx >= 3)
             // quit the applciation 
             Application.Quit();
         string newscenename = $"FrankaScene{sceneidx}"; 
