@@ -38,7 +38,7 @@ public class SceneSetup : MonoBehaviour
     ROSConnection m_Ros;
     public PandaPlanner planner;
     public Vector3 final_missing_position;  
-    double final_distance = 100;
+    public double final_distance = 100;
     double? added_object = null;
     public double? object_placed = null;
     void Start()
@@ -159,7 +159,6 @@ public class SceneSetup : MonoBehaviour
     }
     public void LoadNewScene() {
         // iterate over time_logs and publish it to the ros topic
-        final_distance = (double) CalculateDistanceBetweenFinalMissing();
         FloatListMsg msg1 = new FloatListMsg();
         msg1.joints = new double[3];
         // time logs and distances to publish 

@@ -277,6 +277,8 @@ namespace PandaRobot
             try {
                 newObjTransformation = scenesetup_tool.missing_obj.transform.position;
                 scenesetup_tool.final_missing_position = newObjTransformation;
+                scenesetup_tool.final_distance = (double) scenesetup_tool.CalculateDistanceBetweenFinalMissing();
+
             } catch {
                 Debug.Log("Could not get the position of the object");
                 return;
@@ -312,9 +314,6 @@ namespace PandaRobot
         {
             OpenGripper();
             colorindex = 0;
-            Int16Msg msg = new Int16Msg();
-            msg.data =  (short) response.Length;
-            m_Ros.Publish(pub_number_of_poses, msg);
             Debug.Log($"I will got to {response.Length} poses");
             if (response != null)
             {
@@ -521,8 +520,11 @@ namespace PandaRobot
             gripper.joints[0] = (double) closegripper;
             gripper.joints[1] = (double) opengripper;
             m_Ros.Publish(gripperAction, gripper);
-            // gripper.data = (short) 0;
-            // m_Ros.Publish(gripperAction, gripper);
+           
+            Int16Msg msg = new Int16Msg();
+            msg.data =  (short) trajectoriesForRobot.Count;
+            m_Ros.Publish(pub_number_of_poses, msg);
+
             for (int i = 0; i < trajectoriesForRobot.Count; i++) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, trajectoriesForRobot[i]);
