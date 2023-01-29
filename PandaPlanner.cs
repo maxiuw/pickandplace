@@ -90,6 +90,8 @@ namespace PandaRobot
         List<RobotTrajectoryMsg> trajectoriesForRobot;
         public bool robot_on_the_position = false;
         public SceneSetup scenesetup_tool;
+        public ActivateCanvas button_controller;
+        // double[] joints;
         void Start()
         {
             // initiate all the variables and find the robot on start 
@@ -127,11 +129,13 @@ namespace PandaRobot
             var leftGripper = linkName + "/panda_link8/panda_hand/panda_leftfinger";
             m_RightGripper = Panda.transform.Find(rightGripper).GetComponent<ArticulationBody>();
             m_LeftGripper = Panda.transform.Find(leftGripper).GetComponent<ArticulationBody>();
+            // MoveToRealRobotPose();
         }
         void Update() {
             // try to move the robot to the real pose and change robot_on_the_position
             if (!robot_on_the_position) {
                 MoveToRealRobotPose();
+                // robot_on_the_position = true;
             }
         }
 
@@ -181,7 +185,7 @@ namespace PandaRobot
             {
                 // Debug.Log(i);
                 joints.joints[i] = m_JointArticulationBodies[i].jointPosition[0];
-                // Debug.Log(m_JointArticulationBodies[i].jointPosition[0]);
+                Debug.Log($" join {i}: {m_JointArticulationBodies[i].jointPosition[0]}");
             }
 
             return joints;
@@ -252,10 +256,26 @@ namespace PandaRobot
 
         public void PublishJoints()
         {
+            // get the position of the real robot 
+            // FloatListMsg response = real_robot_position;
+            // float[] response_array = real_robot_position.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+
+            // for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
+            // {
+            //     // each join jumps to the position of the real robot
+            //     var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+            //     joint1XDrive.target = response_array[joint];
+            //     m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+            //     // save the joint position to the buffer for planning 
+
+            // }
+            
+            // print joints and response array 
+            // Debug.Log($"{joints} {response_array}");
+            // calculate time taken to move to the robot 
+            button_controller.ButtonMoveRealRobot.interactable = true;
+            button_controller.ButtonPickObject.interactable = false;
             scenesetup_tool.object_placed = scenesetup_tool.timeRemaining - scenesetup_tool.maxtime;
-            try {
-                scenesetup_tool.time_logs["dist2target"] = scenesetup_tool.CalculateDistanceBetweenTheObjecs2D(scenesetup_tool.missing_obj, scenesetup_tool.missing_position);
-            } catch {}
             // reset n poses for the real robot 
             Int16Msg pose_n = new Int16Msg();
             pose_n.data =  (short) 0;
@@ -263,21 +283,13 @@ namespace PandaRobot
             // dealing with target placement 
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
             m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
-            var request = new PandaManyPosesRequest();
-            // getting current joint state
-            double[] joints = new double[k_NumRobotJoints];
-            for (var i = 0; i < k_NumRobotJoints; i++)
-            {
-                joints[i] = m_JointArticulationBodies[i].jointPosition[0];
-            }
-            Vector3 newObjTransformation = new Vector3();
-            request.current_joints = joints;
-            // try {
-            //     newObjTransformation = Reciever.positions.Peek();
-            //     newObjRotation = Reciever.rotations.Peek();
-            // } catch {
-            //     newObjTransformation = Reciever.testtopick.transform.position;
+            var request = new PandaManyPosesRequest();     
+            request.current_joints = CurrentJointConfig().joints;
+            // while (CurrentJointConfig().joints != real_robot_position.joints.Select(r => (double)r * Mathf.Rad2Deg).ToArray()) {
+            //     r
             // }
+
+            Vector3 newObjTransformation = new Vector3();
             try {
                 newObjTransformation = scenesetup_tool.missin_position3d;
                 scenesetup_tool.final_missing_position = scenesetup_tool.missing_obj.transform.position;
@@ -464,24 +476,28 @@ namespace PandaRobot
 
         public void MoveToRealRobotPose()
         {
+            double[] joints = new double[k_NumRobotJoints];
+
             try {
                 FloatListMsg response = real_robot_position;
                 float[] response_array = response.joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
                 string printing = "";
                 for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
                 {
+                    // each join jumps to the position of the real robot
                     printing += response_array[joint].ToString() + " next ";
                     var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
                     joint1XDrive.target = response_array[joint];
                     m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+                    // save the joint position to the buffer for planning 
+                    joints[joint] = m_JointArticulationBodies[joint].jointPosition[0];
+
                 }
                 robot_on_the_position = true;
             } catch {
                 Debug.Log("Wait a couple of seconds, I have not recieved any poses yet.");
                 robot_on_the_position = false;
             }
-            
-
         }
         /// <summary>
         /// executing the trajectory given by the controller  /move_group/fake_controller_joint_states 
@@ -518,6 +534,8 @@ namespace PandaRobot
             /// Moving real robot, based on the trajectories saved earlier during the exacution inside the unity
             /// trajecotry saved in trajectoriesForRobot, calling in this way so i can wait for the execution 
             /// </summary>
+            button_controller.ButtonMoveRealRobot.interactable = false;
+            button_controller.ButtonNextScene.interactable = true;
             StartCoroutine(SendTrajectoriesToRealRobot());
         }
         IEnumerator SendTrajectoriesToRealRobot() {

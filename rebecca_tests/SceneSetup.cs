@@ -33,7 +33,7 @@ public class SceneSetup : MonoBehaviour
     string scene_name;
     [HideInInspector]
     public GameObject missing_obj;
-    string missing_class = "";
+    public string missing_class = "";
     public Dictionary<string,float> time_logs = new Dictionary<string,float>();
     // ROS
     ROSConnection m_Ros;
@@ -110,7 +110,7 @@ public class SceneSetup : MonoBehaviour
         string[] splitted = line.Split(splitters);
         detected_objects[splitted[0]] = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
         detected_objects[splitted[3]] = new Vector2(float.Parse(splitted[4]), float.Parse(splitted[5]));
-        detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
+        // detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
     }
     void Save_Missing_Objects(StringMsg msg) {
         // Debug.Log(msg.data);

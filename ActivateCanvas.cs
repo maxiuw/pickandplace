@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR;
-
+using PandaRobot;
 public class ActivateCanvas : MonoBehaviour
 {
     public GameObject[] objects;
@@ -18,13 +18,18 @@ public class ActivateCanvas : MonoBehaviour
     public Button ButtonOrange;    
     public Button ButtonHammer;    
     public Button ButtonScrewDriver;    
-
+    public Button ButtonMoveRealRobot;
+    public Button ButtonPickObject;
+    public Button ButtonNextScene;
     public GameObject buttonX;
     public GameObject buttonY;
-
+    public PandaPlanner planner;
+    public SceneSetup scene_controller;
+    
     // string canvas_name = "UICanvasPlaceObject";
     int lastobj_id = 0;
     // Start is called before the first frame update
+
     void Start() {
         // save last button so that we can remove grabbable 
         // lastObject = new GameObject();
@@ -36,6 +41,9 @@ public class ActivateCanvas : MonoBehaviour
         ButtonOrange.onClick.AddListener(delegate{InsertObj(4);});   
         ButtonHammer.onClick.AddListener(delegate{InsertObj(5);});
         ButtonScrewDriver.onClick.AddListener(delegate{InsertObj(6);});
+        ButtonMoveRealRobot.interactable = false;
+        ButtonPickObject.interactable = false;
+        ButtonNextScene.interactable = false;
 
     }
     public void Activate()
@@ -108,7 +116,7 @@ public class ActivateCanvas : MonoBehaviour
     public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null, Vector3? p = null, string? name_given = null) {
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
         // choose object
-
+        planner.MoveToRealRobotPose();
         GameObject prefab = objects[obj_id];
         // if object of the prefab name or name_given already exists, then destroy it 
         if (name_given != null) {
@@ -140,6 +148,11 @@ public class ActivateCanvas : MonoBehaviour
 
         } else {
             newObj.name = $"{name_given}";
+        }
+        if (newObj.name == scene_controller.missing_class) {
+            // activate pick up button if it is the missing class
+            ButtonPickObject.interactable = true;
+            ButtonMoveRealRobot.interactable = false;
         }
         newObj.transform.position = position;
         newObj.transform.rotation = rotation;
