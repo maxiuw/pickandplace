@@ -28,6 +28,8 @@ public class CamScript : MonoBehaviour
     int frame = 0;
     int frame_unity = 0;
     Stack<byte[]> imgmessages;
+    Stack<byte[]> imgmessagesFar;
+
     byte[] last_imgmessages;
     public GameObject XROrgin;
     public bool passthrough = true;
@@ -36,12 +38,14 @@ public class CamScript : MonoBehaviour
         // init all necessary stuff
         m_Ros = ROSConnection.GetOrCreateInstance();
         texRos = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24   
+        texCamFar = new Texture2D(width, height, TextureFormat.RGB24, false); // , TextureFormat.RGB24
         // queue for images since subscriber does not support that 
         imgmessages = new Stack<byte[]>();
+        imgmessagesFar = new Stack<byte[]>();
         // passthrough disabled at the start 
         table_display.enabled = passthrough;    
         m_Ros.Subscribe<ImageMsg>("/myresult", StartStopCam_Clicked);
-        m_Ros.Subscribe<ImageMsg>("camera_far/image_raw", StartStopCam_Clicked);
+        m_Ros.Subscribe<ImageMsg>("camera_far/image_raw", RecordFarCam);
 
     }
 
@@ -55,9 +59,15 @@ public class CamScript : MonoBehaviour
             try {
                 texRos.LoadRawTextureData(imgmessages.Pop()); //
                 texRos.Apply();
-                display.texture = texRos; 
+                // display.texture = texRos; 
                 table_display.texture = texRos;
                 imgmessages = new Stack<byte[]>();
+                // do the same for the far camera
+                texCamFar.LoadRawTextureData(imgmessagesFar.Pop()); //
+                texCamFar.Apply();
+                display.texture = texCamFar;
+                // clear stack
+                imgmessagesFar = new Stack<byte[]>();
             } catch {
                 // do nothing
             }       
@@ -111,7 +121,10 @@ public class CamScript : MonoBehaviour
         // texRos.Apply();
         // display.texture = texRos;        
     }
-
+    public void RecordFarCam(ImageMsg img) {
+        imgmessagesFar.Push(img.data);
+        frame++;
+    }
     public void BgrToRgb(byte[] data) {
         for (int i = 0; i < data.Length; i += 3)
         {

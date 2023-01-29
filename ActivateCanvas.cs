@@ -51,6 +51,8 @@ public class ActivateCanvas : MonoBehaviour
         } catch {}
         if (objectCreationCanvas.active == false) {
             objectCreationCanvas.SetActive(true);
+            objectRobotUICanvas.SetActive(false);
+
         } else {
             Deactivate(objectCreationCanvas.name);
         }
@@ -70,6 +72,7 @@ public class ActivateCanvas : MonoBehaviour
         } catch {}
         if (objectRobotUICanvas.active == false) {
             objectRobotUICanvas.SetActive(true);
+            objectCreationCanvas.SetActive(false);
         } else {
             Deactivate(objectRobotUICanvas.name);
         }

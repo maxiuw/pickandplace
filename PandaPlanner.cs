@@ -308,8 +308,17 @@ namespace PandaRobot
             // save last pick up and place poses
             lastpickup_pose = request.pick_pose;
             lastplace_pose = request.place_pose;
+            // this are 2 empty poses since we are not using waypoints
             request.pre_pick_poses = new PoseMsg[0];
             request.post_pick_poses = new PoseMsg[0];
+            // pose to come back to home position
+            request.post_place_pose = new PoseMsg
+            {
+                position = (homePose + m_PickPoseOffset).To<FLU>(), // m_Target.transform.position
+
+                // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
+                orientation = hand_orientation.To<FLU>() //m_Target.transform
+            };
             Debug.Log($"position place {placepose}");
             m_Ros.SendServiceMessage<PandaManyPosesResponse>(waypoints_service, request, PandaTrajectoryResponse);
         }
@@ -395,6 +404,9 @@ namespace PandaRobot
             yield return new WaitForSeconds(k_JointAssignmentWait);
             opengripper = 5;
             yield return StartCoroutine(OpenGripper());
+            yield return new WaitForSeconds(k_JointAssignmentWait);
+            // go home 
+            yield return StartCoroutine(ExecuteTrajectoriesWaypoints(response.trajecotry_list.trajectories_postplace));
             Debug.Log($"close {closegripper} open {opengripper}");
             colorindex = -1; // added to stop generating waypoints 
         }
