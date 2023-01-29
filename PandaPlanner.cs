@@ -256,6 +256,10 @@ namespace PandaRobot
             try {
                 scenesetup_tool.time_logs["dist2target"] = scenesetup_tool.CalculateDistanceBetweenTheObjecs2D(scenesetup_tool.missing_obj, scenesetup_tool.missing_position);
             } catch {}
+            // reset n poses for the real robot 
+            Int16Msg pose_n = new Int16Msg();
+            pose_n.data =  (short) 0;
+            m_Ros.Publish(reset_n_poses, pose_n);
             // dealing with target placement 
             m_TargetPlacement.GetComponent<Rigidbody>().useGravity = false;
             m_TargetPlacement.GetComponent<BoxCollider>().enabled = false; // so we can move it aroudn in vr but when robot moves the cube ther e it doesnt collide\
@@ -275,8 +279,8 @@ namespace PandaRobot
             //     newObjTransformation = Reciever.testtopick.transform.position;
             // }
             try {
-                newObjTransformation = scenesetup_tool.missing_obj.transform.position;
-                scenesetup_tool.final_missing_position = newObjTransformation;
+                newObjTransformation = scenesetup_tool.missin_position3d;
+                scenesetup_tool.final_missing_position = scenesetup_tool.missing_obj.transform.position;
                 scenesetup_tool.final_distance = (double) scenesetup_tool.CalculateDistanceBetweenFinalMissing();
 
             } catch {
@@ -509,12 +513,11 @@ namespace PandaRobot
             // after trajectory are discussed and accepted, this function should publish them to the topic
             // moveit_unity_node exectues them on the real world robot 
             // reset_n_poses to start with 
-            Int16Msg pose_n = new Int16Msg();
-            pose_n.data =  (short) 0;
-            m_Ros.Publish(reset_n_poses, pose_n);
+           
             // yield return new WaitForSeconds(2);
             // start with openning the gripper 
             // sending when to open and close the gripper
+            // sendmehome = true;
             FloatListMsg gripper = new FloatListMsg();
             gripper.joints = new double[2];
             gripper.joints[0] = (double) closegripper;
@@ -528,24 +531,16 @@ namespace PandaRobot
             for (int i = 0; i < trajectoriesForRobot.Count; i++) {
                 Debug.Log("trajectories were sent");
                 m_Ros.Publish(realrobot_move_topic, trajectoriesForRobot[i]);
-                //  close and open the gripper when the robot is in the pose to close/open the gripper 
-                // yield return new WaitForSecondsRealtime(2);
-                // if (i == closegripper-1) {
-                //     gripper.data = (short) 1;
-                //     m_Ros.Publish(gripperAction, gripper);
-                //     yield return new WaitForSecondsRealtime(2);
-                // } 
-                // else if (i == opengripper-) {
-                //     gripper.data = (short) 0;
-                //     m_Ros.Publish(gripperAction, gripper);
-                //     yield return new WaitForSeconds(2);
-                // }
             }  
             yield return new WaitForSecondsRealtime(2);
             // gripper.data = (short) 0;
             // m_Ros.Publish(gripperAction, gripper);
             // remove old traj, reset open/close gripper poses 
             trajectoriesForRobot = new List<RobotTrajectoryMsg>();
+            // if (sendmehome) {
+            //     SendMeHome();
+            //     sendmehome = false
+            // }
             // closegripper = -1;
             // opengripper = -1;
             // gripper.data = (short) 0;

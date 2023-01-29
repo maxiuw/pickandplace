@@ -27,7 +27,8 @@ public class SceneSetup : MonoBehaviour
     public float maxtime = 800f;
     bool timerIsRunning = true;
     public Text timeText;
-    public Vector2 missing_position = new Vector2(0,0);
+    public Vector2 missing_position;
+    public Vector3 missin_position3d;
     string[] object_names = {"Banana", "CubeDetected", "Food_Apple_Red"};
     string scene_name;
     [HideInInspector]
@@ -109,7 +110,7 @@ public class SceneSetup : MonoBehaviour
         string[] splitted = line.Split(splitters);
         detected_objects[splitted[0]] = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
         detected_objects[splitted[3]] = new Vector2(float.Parse(splitted[4]), float.Parse(splitted[5]));
-        // detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
+        detected_objects[splitted[6]] = new Vector2(float.Parse(splitted[7]), float.Parse(splitted[8]));
     }
     void Save_Missing_Objects(StringMsg msg) {
         // Debug.Log(msg.data);
@@ -119,6 +120,7 @@ public class SceneSetup : MonoBehaviour
         string[] splitted = line.Split(splitters);
         missing_class = splitted[0];
         missing_position = new Vector2(float.Parse(splitted[1]), float.Parse(splitted[2]));
+        missin_position3d = new Vector3(float.Parse(splitted[1]), 0.85f, float.Parse(splitted[2]));
     }
 
 
@@ -155,10 +157,16 @@ public class SceneSetup : MonoBehaviour
     }
     public float CalculateDistanceBetweenFinalMissing() {
         // final_missing_position and gt
-        return Mathf.Sqrt(Mathf.Pow((final_missing_position.x - missing_position.x), 2) + Mathf.Pow((final_missing_position.y - missing_position.y), 2));
+        return Mathf.Sqrt(Mathf.Pow((final_missing_position.x - missing_position.x), 2) + Mathf.Pow((final_missing_position.z - missing_position.y), 2));
     }
     public void LoadNewScene() {
         // iterate over time_logs and publish it to the ros topic
+        // yield return planner.SendMeHome();
+        // yield return new WaitForSeconds(4);
+        // planner.MoveRealRobot();
+        // yield return new WaitForSeconds(4);
+        // wait 3 seconds for the robot 
+        
         FloatListMsg msg1 = new FloatListMsg();
         msg1.joints = new double[3];
         // time logs and distances to publish 
@@ -178,7 +186,7 @@ public class SceneSetup : MonoBehaviour
         
         // get the current scene name
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
-        if (sceneidx >= 3)
+        if (sceneidx >= 4)
             // quit the applciation 
             Application.Quit();
         string newscenename = $"FrankaScene{sceneidx}"; 
@@ -189,19 +197,8 @@ public class SceneSetup : MonoBehaviour
         m_Ros.Publish("/scene_idx", msg);
         UnityEngine.SceneManagement.SceneManager.LoadScene(newscenename);      
         UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene_name); 
-        // DateTime now = DateTime.Now;
-        
-
-
-
-        // // iterate over time_logs and save it to the file
-        // foreach (string key in time_logs.Keys) {
-        //     using (StreamWriter sw = File.AppendText($"{now}.txt")) {
-        //         sw.WriteLine($"{key}:{time_logs[key]}\n");
-        //     }
-        // }
-
     }
+ 
      // void GetSetup(string path, string path_missing) {
     //     // getset up from the file
     //     // reads set up and transforms it to the dic

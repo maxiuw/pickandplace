@@ -15,6 +15,7 @@ public class CamScript : MonoBehaviour
     int currentCamIdx = 0;
     // WebCamTexture tex; 
     Texture2D texRos;
+    Texture2D texCamFar;
     public RawImage display;
     public RawImage table_display;
     ROSConnection m_Ros;
@@ -39,7 +40,9 @@ public class CamScript : MonoBehaviour
         imgmessages = new Stack<byte[]>();
         // passthrough disabled at the start 
         table_display.enabled = passthrough;    
-        m_Ros.Subscribe<ImageMsg>(camtopics[currenttopic], StartStopCam_Clicked);
+        m_Ros.Subscribe<ImageMsg>("/myresult", StartStopCam_Clicked);
+        m_Ros.Subscribe<ImageMsg>("camera_far/image_raw", StartStopCam_Clicked);
+
     }
 
     // public void StartSub() {
