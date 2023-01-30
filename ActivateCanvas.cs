@@ -46,6 +46,14 @@ public class ActivateCanvas : MonoBehaviour
         ButtonNextScene.interactable = false;
 
     }
+    void Update() {
+        // on button x activate objectCreationCanvas on button y activate objectRobotUICanvas
+        if (Input.GetKeyDown(KeyCode.X)) {
+            Activate();
+        } else if (Input.GetKeyDown(KeyCode.Y)) {
+            ActivateRobotCanvas();
+        }
+    }
     public void Activate()
     {
         // activating the canvas on the click of the vr controller
