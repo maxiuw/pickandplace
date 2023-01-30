@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class FollowVRController : MonoBehaviour
 {
+    public float x = 0.4f;
+    public float y = -0.2f;
+    public float z = -0.8f;
     public GameObject controller;
     // Start is called before the first frame update
 
@@ -11,8 +14,9 @@ public class FollowVRController : MonoBehaviour
     void Update()
     {
         Vector3 controller_position = controller.transform.position;
-        controller_position.x += 0.2f;
-        controller_position.z -= 0.5f;
+        controller_position.x += x;
+        controller_position.z += z;
+        controller_position.y += y;
         this.transform.position = controller_position;
         this.transform.rotation = controller.transform.rotation;
     }
