@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System;
 // using System.Diagnostics;
 using System.Security.AccessControl;
@@ -21,10 +22,10 @@ public class SceneSetup : MonoBehaviour
     public Dictionary<string,Vector2> detected_objects;
     public GameObject[] detectable;
     public ActivateCanvas object_inserter;
-    [HideInInspector]
-    public float timeRemaining = 800f;
-    [HideInInspector]
-    public float maxtime = 800f;
+    // [HideInInspector]
+    public float timeRemaining = 300f;
+    // [HideInInspector]x
+    public float maxtime = 300f;
     bool timerIsRunning = true;
     public Text timeText;
     public Vector2 missing_position;
@@ -42,6 +43,9 @@ public class SceneSetup : MonoBehaviour
     public double final_distance = 100;
     double? added_object = null;
     public double? object_placed = null;
+    public int n_added_missing_obj = 0;
+    public int n_added_other_object = 0;
+    public GameObject target_placement;
     void Start()
     {
         scene_name = SceneManager.GetActiveScene().name;
@@ -131,7 +135,6 @@ public class SceneSetup : MonoBehaviour
             if (object_inserter.objects[i].name.ToLower().Contains(key.ToLower())) {
                 Vector3 position = new Vector3(obj_position.x, 0.85f ,obj_position.y);
                 object_inserter.InsertObj(i, true, false, null, position, key);  // object_inserter.InsertObj(i, false, false, null, position, key);
-
             }
         }
     }
@@ -143,7 +146,7 @@ public class SceneSetup : MonoBehaviour
         // calculate distance between the object and the ground truth
         if (missing_obj != null & added_object == null) {
             // save time at the moment when the object was added
-                added_object =  timeRemaining - maxtime;                     
+                added_object =  maxtime - timeRemaining;                     
         }
         else {
             Debug.Log("Object not found");
@@ -152,6 +155,14 @@ public class SceneSetup : MonoBehaviour
     public float CalculateDistanceBetweenTheObjecs2D(GameObject obj1, Vector2 gt) {
         // calculate distance between the object and the ground truth
         float distance = Mathf.Sqrt(Mathf.Pow((obj1.transform.position.x - gt.x), 2) + Mathf.Pow((obj1.transform.position.z - gt.y), 2));
+        // Debug.Log(distance);
+        return distance;
+    }
+
+
+    public float CalculateDistanceBetweenTwoObj(GameObject obj1, GameObject obj2) {
+        // calculate distance between the object and the ground truth
+        float distance = Mathf.Sqrt(Mathf.Pow((obj1.transform.position.x - obj2.transform.position.x), 2) + Mathf.Pow((obj1.transform.position.z - obj2.transform.position.z), 2));
         // Debug.Log(distance);
         return distance;
     }
@@ -168,7 +179,9 @@ public class SceneSetup : MonoBehaviour
         // wait 3 seconds for the robot 
         
         FloatListMsg msg1 = new FloatListMsg();
-        msg1.joints = new double[3];
+        msg1.joints = new double[6];
+        double dist2target = (double) CalculateDistanceBetweenTwoObj(missing_obj, target_placement);
+        
         // time logs and distances to publish 
         try {
             msg1.joints[0] = (double) added_object;
@@ -178,15 +191,23 @@ public class SceneSetup : MonoBehaviour
         try {
             msg1.joints[1] = (double) object_placed;
         } catch {
-            msg1.joints[2] = 0;
+            msg1.joints[1] = 0;
         }
         msg1.joints[2] = final_distance;
+        if (dist2target < 0.03)
+            msg1.joints[3] = 1;
+        else
+            msg1.joints[3] = dist2target;
+        // save number of times missing object was added
+        msg1.joints[4] = (double) n_added_missing_obj;
+        // save number of times objects were added
+        msg1.joints[5] = (double) n_added_other_object;
         // publish to time_logs_scene 
         m_Ros.Publish("/time_logs_scene", msg1);
         
         // get the current scene name
         int sceneidx = int.Parse(scene_name[scene_name.Length - 1].ToString()) + 1;
-        if (sceneidx >= 4)
+        if (sceneidx >= 5)
             // quit the applciation 
             Application.Quit();
         string newscenename = $"FrankaScene{sceneidx}"; 

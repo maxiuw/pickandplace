@@ -275,7 +275,7 @@ namespace PandaRobot
             // calculate time taken to move to the robot 
             button_controller.ButtonMoveRealRobot.interactable = true;
             button_controller.ButtonPickObject.interactable = false;
-            scenesetup_tool.object_placed = scenesetup_tool.timeRemaining - scenesetup_tool.maxtime;
+            scenesetup_tool.object_placed = scenesetup_tool.maxtime - scenesetup_tool.timeRemaining;
             // reset n poses for the real robot 
             Int16Msg pose_n = new Int16Msg();
             pose_n.data =  (short) 0;
