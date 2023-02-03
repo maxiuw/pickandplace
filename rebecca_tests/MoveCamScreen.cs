@@ -18,28 +18,29 @@ public class MoveCamScreen : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // on spacebar press, come back to the initial pose
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        // hold space bar for 1 sec to reset the camera view    
+        if (Input.GetKey(KeyCode.Space)) {
             ResetCam();
         }
+
         // on hold left arrow press, keep on moving lef
         if (Input.GetKey(KeyCode.A)) {
-            transform.Translate(new Vector3(-0.01f, 0.001f, 0));
+            transform.Translate(new Vector3(-0.0025f, 0.001f, 0));
             // transform.Rotate(new Vector3(0, 0.1f, 0.05f));
         }
         // on right arrow press, move right
         if (Input.GetKey(KeyCode.D)) {
-            transform.Translate(new Vector3(0.01f, 0.001f, 0));
+            transform.Translate(new Vector3(0.0025f, 0.001f, 0));
             // transform.Rotate(new Vector3(0, -0.1f, 0.05f));
         }
         // on up arrow press, move up
         if (Input.GetKey(KeyCode.W)) {
-            transform.Translate(new Vector3(0, 0.01f, 0));
+            transform.Translate(new Vector3(0, 0.0025f, 0));
             // transform.Rotate(new Vector3(0, -0.1f, 0.05f));
         }
         // on down arrow press, move down
         if (Input.GetKey(KeyCode.S)) {
-            transform.Translate(new Vector3(0, -0.01f, 0));
+            transform.Translate(new Vector3(0, -0.0025f, 0));
             // transform.Rotate(new Vector3(0, -0.1f, 0.05f));
         }
         // on holding the left mouse button, rotate in the direction where the mouse is moving

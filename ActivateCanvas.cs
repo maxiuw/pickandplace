@@ -34,13 +34,13 @@ public class ActivateCanvas : MonoBehaviour
         // save last button so that we can remove grabbable 
         // lastObject = new GameObject();
         // delegate between different option for different object we want to insert
-        ButtonBanana.onClick.AddListener(delegate{InsertObj(0);});
-        ButtonBottle.onClick.AddListener(delegate{InsertObj(1);});
-        ButtonApple.onClick.AddListener(delegate{InsertObj(2);});
-        ButtonCube.onClick.AddListener(delegate{InsertObj(3);});
-        ButtonOrange.onClick.AddListener(delegate{InsertObj(4);});   
-        ButtonHammer.onClick.AddListener(delegate{InsertObj(5);});
-        ButtonScrewDriver.onClick.AddListener(delegate{InsertObj(6);});
+        ButtonBanana.onClick.AddListener(delegate{InsertObj(0, count:true);});
+        ButtonBottle.onClick.AddListener(delegate{InsertObj(1, count:true);});
+        ButtonApple.onClick.AddListener(delegate{InsertObj(2, count:true);});
+        ButtonCube.onClick.AddListener(delegate{InsertObj(3, count:true);});
+        ButtonOrange.onClick.AddListener(delegate{InsertObj(4, count:true);});   
+        ButtonHammer.onClick.AddListener(delegate{InsertObj(5, count:true);});
+        ButtonScrewDriver.onClick.AddListener(delegate{InsertObj(6, count:true);});
         ButtonMoveRealRobot.interactable = false;
         ButtonPickObject.interactable = false;
         ButtonNextScene.interactable = false;
@@ -121,7 +121,7 @@ public class ActivateCanvas : MonoBehaviour
         }
     }
 
-    public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null, Vector3? p = null, string? name_given = null) {
+    public void InsertObj(int obj_id, bool simple = false, bool grab = true, Transform? t = null, Vector3? p = null, string? name_given = null, bool count = false) {
         // objc id from the list, simple = enable simple interactable, grab - enable grab interactable, p - desire position of the object 
         // choose object
         planner.MoveToRealRobotPose();
@@ -158,9 +158,14 @@ public class ActivateCanvas : MonoBehaviour
             newObj.name = $"{name_given}";
         }
         if (newObj.name == scene_controller.missing_class) {
+            // count how many times we added the missing class
+            if (count) 
+                scene_controller.n_added_missing_obj++;
             // activate pick up button if it is the missing class
             ButtonPickObject.interactable = true;
             ButtonMoveRealRobot.interactable = false;
+        } else if (newObj.name != scene_controller.missing_class && count){
+            scene_controller.n_added_other_object++;
         }
         newObj.transform.position = position;
         newObj.transform.rotation = rotation;
