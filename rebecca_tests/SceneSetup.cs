@@ -30,7 +30,7 @@ public class SceneSetup : MonoBehaviour
     public Text timeText;
     public Vector2 missing_position;
     public Vector3 missin_position3d;
-    string[] object_names = {"Banana", "CubeDetected", "Food_Apple_Red"};
+    string[] object_names = {"Banana", "Hammer", "Screwdrivery"}; // 0, 1, 2
     string scene_name;
     [HideInInspector]
     public GameObject missing_obj;
@@ -179,7 +179,7 @@ public class SceneSetup : MonoBehaviour
         // wait 3 seconds for the robot 
         
         FloatListMsg msg1 = new FloatListMsg();
-        msg1.joints = new double[6];
+        msg1.joints = new double[8];
         double dist2target = (double) CalculateDistanceBetweenTwoObj(missing_obj, target_placement);
         
         // time logs and distances to publish 
@@ -203,6 +203,11 @@ public class SceneSetup : MonoBehaviour
         // save number of times objects were added
         msg1.joints[5] = (double) n_added_other_object;
         // publish to time_logs_scene 
+         msg1.joints[6] = (double) missing_position.x;
+        // find index of missing class in object names
+        int idx = Array.IndexOf(object_names, missing_class);
+        msg1.joints[7] = (double) idx;
+        // get the current scene name
         m_Ros.Publish("/time_logs_scene", msg1);
         
         // get the current scene name
