@@ -138,7 +138,7 @@ public class ActivateCanvas : MonoBehaviour
         Quaternion rotation = new Quaternion();
         // using the function to randomly insert the objects in the middle of the box or in where they were moved  
         if (t == null && p == null) { 
-            position = new Vector3(0.135f, 0.83f, 0.5f);
+            position = new Vector3(0.13f, 0.83f, 0.55f);
         } else if (t == null && p != null) {
             position = (Vector3) p;
         } else if (t != null) {
