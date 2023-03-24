@@ -1,4 +1,10 @@
-# pickandplace
+# User studies 
+
+Please visit [OSF repository](https://osf.io/c8wap/?view_only=e1c799b564b043d0aeaac289513ebff0) for more information about hypothesis, user studies and statistical analysis  
+
+## Code 
+You can find the Unity projects we used for testing Screen and VR interfaces here. Scripts used in these projects are available in individaul branches. 
+
 Unity project and dataset with annotation can be download here:
 
 https://kth-my.sharepoint.com/:f:/g/personal/maciejw_ug_kth_se/Eh_lkKA3DIxPuFY8xz67kiQBqRX4GRdf5Nz3s0M77a0fpA?e=pV1fiR
@@ -24,3 +30,4 @@ https://github.com/Unity-Technologies/Unity-Robotics-Hub
 3. Rosrun planner
 4. add obstacle
 5. Start planning and interacting 
+
