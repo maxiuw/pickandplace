@@ -1,6 +1,6 @@
-# User studies 
+# User studies
 
-Please visit [OSF repository](https://osf.io/c8wap/?view_only=e1c799b564b043d0aeaac289513ebff0) for more information about hypothesis, user studies and statistical analysis  
+Please visit [OSF repository](https://osf.io/c8wap/?view_only=e1c799b564b043d0aeaac289513ebff0) for more information about **hypothesis, user studies and statistical analysis, videos and other suplementary materials** mentioned in the paper.
 
 ## Code 
 You can find the Unity projects we used for testing Screen and VR interfaces here. Scripts used in these projects are available in individaul branches. 
